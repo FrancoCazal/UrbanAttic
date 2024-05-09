@@ -29,15 +29,15 @@ BASE_APPS = [
 ]
 
 LOCAL_APPS = [
+    'apps.base',
     'apps.users',
+    'apps.products',
 ]
 
 THIRD_APPS = [
     'rest_framework',
     'simple_history',
 ]
-
-# C:\Users\franc\OneDrive\Escritorio\Tutorial DRF\drf\ecommerce_rest\ecommerce_rest\settings\base.py
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
 
@@ -101,7 +101,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-# Se emlaza el perfil predeterminado de usuario con el modelo
+# Se enlaza el perfil predeterminado de usuario con el modelo
 AUTH_USER_MODEL = 'users.User'
 
 # Static files (CSS, JavaScript, Images)

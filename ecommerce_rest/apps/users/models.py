@@ -47,7 +47,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.name} {self.last_name}'
-    
-    # Se define este save para que interactue con los save de serializers
-    def save(self, *args, **kwargs):
-        print("Holaaaaaaaaaaaaaaaaaaaaa")
