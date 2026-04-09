@@ -25,7 +25,7 @@ export function Navbar() {
       <div className="flex justify-between items-center w-full px-6 py-4">
         {/* Logo */}
         <Link to="/" className="font-headline text-2xl font-black text-[#fcf9f6] tracking-tighter uppercase">
-          URBAN ATTIC SKATE CO.
+          URBAN ATTIC
         </Link>
 
         {/* Center Nav Links */}

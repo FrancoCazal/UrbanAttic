@@ -50,7 +50,7 @@ export function Footer() {
 
         <div className="pt-8 border-t border-[#fcf9f6]/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="font-headline uppercase tracking-tighter text-xs text-[#fcf9f6]/60">
-            &copy;{currentYear} URBAN ATTIC SKATE CO.
+            &copy;{currentYear} URBAN ATTIC
           </p>
           <span className="font-headline uppercase tracking-tighter text-[10px] text-[#fcf9f6]/40">EST. 2018 / ASUNCION</span>
         </div>
