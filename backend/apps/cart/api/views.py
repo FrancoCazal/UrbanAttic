@@ -8,7 +8,7 @@ from apps.cart.api.serializers import (
     CartDetailSerializer,
     UpdateCartItemSerializer,
 )
-from apps.products.models import Product
+from apps.products.models import ProductVariant
 
 
 class CartView(APIView):
@@ -16,7 +16,7 @@ class CartView(APIView):
 
     def get(self, request):
         cart = CartService(request.user)
-        data = cart.get_cart_detail()
+        data = cart.get_cart_detail(request=request)
         serializer = CartDetailSerializer(data)
         return Response(serializer.data)
 
@@ -28,40 +28,40 @@ class CartAddView(APIView):
         serializer = AddToCartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        product_id = serializer.validated_data['product_id']
+        variant_id = serializer.validated_data['variant_id']
         quantity = serializer.validated_data['quantity']
 
-        if not Product.objects.filter(id=product_id, is_active=True).exists():
+        if not ProductVariant.objects.filter(id=variant_id, is_active=True).exists():
             return Response(
-                {'detail': 'Product not found.'},
+                {'detail': 'Variant not found.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         cart = CartService(request.user)
-        new_qty = cart.add(product_id, quantity)
-        return Response({'product_id': product_id, 'quantity': new_qty})
+        new_qty = cart.add(variant_id, quantity)
+        return Response({'variant_id': variant_id, 'quantity': new_qty})
 
 
 class CartUpdateView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def patch(self, request, product_id):
+    def patch(self, request, variant_id):
         serializer = UpdateCartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         cart = CartService(request.user)
-        cart.update(product_id, serializer.validated_data['quantity'])
+        cart.update(variant_id, serializer.validated_data['quantity'])
 
-        data = cart.get_cart_detail()
+        data = cart.get_cart_detail(request=request)
         return Response(CartDetailSerializer(data).data)
 
 
 class CartRemoveView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def delete(self, request, product_id):
+    def delete(self, request, variant_id):
         cart = CartService(request.user)
-        cart.remove(product_id)
+        cart.remove(variant_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

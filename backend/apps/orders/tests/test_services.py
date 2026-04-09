@@ -1,11 +1,9 @@
 import pytest
 from decimal import Decimal
-from unittest.mock import patch, MagicMock
 from rest_framework.exceptions import ValidationError
 from apps.orders.services import CheckoutService
 from apps.orders.models import Order, OrderItem
-from apps.products.models import Product
-from apps.products.tests.factories import ProductFactory
+from apps.products.tests.factories import ProductVariantFactory
 
 
 class FakeCartService:
@@ -30,11 +28,11 @@ class TestCheckoutService:
         return service
 
     def test_create_order_success(self, user):
-        p1 = ProductFactory(price=Decimal('10.00'), stock=50)
-        p2 = ProductFactory(price=Decimal('25.00'), stock=30)
+        v1 = ProductVariantFactory(price=Decimal('10.00'), stock=50)
+        v2 = ProductVariantFactory(price=Decimal('25.00'), stock=30)
         cart_items = [
-            {'product_id': p1.id, 'quantity': 2},
-            {'product_id': p2.id, 'quantity': 1},
+            {'variant_id': v1.id, 'quantity': 2},
+            {'variant_id': v2.id, 'quantity': 1},
         ]
         service = self._make_service(user, cart_items)
         order = service.create_order(shipping_address='123 Main St')
@@ -45,10 +43,10 @@ class TestCheckoutService:
         assert order.status == Order.Status.PENDING
         assert order.items.count() == 2
 
-        p1.refresh_from_db()
-        p2.refresh_from_db()
-        assert p1.stock == 48
-        assert p2.stock == 29
+        v1.refresh_from_db()
+        v2.refresh_from_db()
+        assert v1.stock == 48
+        assert v2.stock == 29
 
         assert service.cart_service.cleared
 
@@ -58,24 +56,24 @@ class TestCheckoutService:
             service.create_order()
 
     def test_insufficient_stock_raises(self, user):
-        p = ProductFactory(price=Decimal('10.00'), stock=2)
-        cart_items = [{'product_id': p.id, 'quantity': 5}]
+        v = ProductVariantFactory(price=Decimal('10.00'), stock=2)
+        cart_items = [{'variant_id': v.id, 'quantity': 5}]
         service = self._make_service(user, cart_items)
         with pytest.raises(ValidationError, match='Insufficient stock'):
             service.create_order()
 
-        p.refresh_from_db()
-        assert p.stock == 2  # stock unchanged
+        v.refresh_from_db()
+        assert v.stock == 2  # stock unchanged
 
-    def test_inactive_product_raises(self, user):
-        p = ProductFactory(is_active=False, stock=50)
-        cart_items = [{'product_id': p.id, 'quantity': 1}]
+    def test_inactive_variant_raises(self, user):
+        v = ProductVariantFactory(is_active=False, stock=50)
+        cart_items = [{'variant_id': v.id, 'quantity': 1}]
         service = self._make_service(user, cart_items)
         with pytest.raises(ValidationError, match='not available'):
             service.create_order()
 
-    def test_nonexistent_product_raises(self, user):
-        cart_items = [{'product_id': 99999, 'quantity': 1}]
+    def test_nonexistent_variant_raises(self, user):
+        cart_items = [{'variant_id': 99999, 'quantity': 1}]
         service = self._make_service(user, cart_items)
         with pytest.raises(ValidationError, match='not available'):
             service.create_order()

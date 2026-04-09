@@ -18,7 +18,7 @@ from apps.orders.api.serializers import (
     OrderDetailSerializer,
     OrderCreateSerializer,
 )
-from apps.products.models import Product
+from apps.products.models import ProductVariant
 
 
 class OrderListCreateView(generics.ListCreateAPIView):
@@ -58,7 +58,7 @@ class OrderDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return Order.objects.filter(
             user=self.request.user,
-        ).prefetch_related('items__product')
+        ).prefetch_related('items__variant__product')
 
 
 class OrderCancelView(APIView):
@@ -82,8 +82,8 @@ class OrderCancelView(APIView):
         order.status = Order.Status.CANCELLED
         order.save(update_fields=['status', 'updated_at'])
 
-        for item in order.items.select_related('product').all():
-            Product.objects.filter(pk=item.product_id).update(
+        for item in order.items.select_related('variant').all():
+            ProductVariant.objects.filter(pk=item.variant_id).update(
                 stock=F('stock') + item.quantity
             )
 

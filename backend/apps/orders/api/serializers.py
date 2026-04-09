@@ -3,14 +3,16 @@ from apps.orders.models import Order, OrderItem
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_name = serializers.CharField(source='variant.product.name', read_only=True)
+    variant_name = serializers.CharField(source='variant.name', read_only=True)
+    sku = serializers.CharField(source='variant.sku', read_only=True)
     line_total = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True,
     )
 
     class Meta:
         model = OrderItem
-        fields = ('id', 'product', 'product_name', 'quantity', 'price', 'line_total')
+        fields = ('id', 'variant', 'product_name', 'variant_name', 'sku', 'quantity', 'price', 'line_total')
         read_only_fields = fields
 
 

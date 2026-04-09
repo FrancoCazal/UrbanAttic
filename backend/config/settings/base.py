@@ -33,6 +33,7 @@ LOCAL_APPS = [
     'apps.products',
     'apps.cart',
     'apps.orders',
+    'django_cleanup.apps.CleanupConfig',  # must be last
 ]
 
 INSTALLED_APPS = BASE_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -136,8 +137,8 @@ CSRF_TRUSTED_ORIGINS = config(
 
 # drf-spectacular
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'CartPro API',
-    'DESCRIPTION': 'CartPro E-Commerce API',
+    'TITLE': 'Urban Attic API',
+    'DESCRIPTION': 'Urban Attic E-Commerce API',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }

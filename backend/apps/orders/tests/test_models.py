@@ -22,4 +22,4 @@ class TestOrderItemModel:
 
     def test_str(self):
         item = OrderItemFactory()
-        assert item.product.name in str(item)
+        assert str(item.variant) in str(item)

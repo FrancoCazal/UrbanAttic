@@ -1,9 +1,11 @@
-import { useCategories } from '@/hooks/useProducts';
+import { useCategoryTree } from '@/hooks/useProducts';
+import { CategoryTree } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ChevronRight } from 'lucide-react';
 
 interface ProductFiltersProps {
   filters: {
@@ -14,8 +16,52 @@ interface ProductFiltersProps {
   onFilterChange: (filters: { category?: string; min_price?: number; max_price?: number }) => void;
 }
 
+interface CategoryNodeProps {
+  node: CategoryTree;
+  selectedSlug?: string;
+  onSelect: (slug: string) => void;
+  depth?: number;
+}
+
+function CategoryNode({ node, selectedSlug, onSelect, depth = 0 }: CategoryNodeProps) {
+  const isSelected = selectedSlug === node.slug;
+  const hasChildren = node.children && node.children.length > 0;
+
+  return (
+    <div>
+      <button
+        onClick={() => onSelect(node.slug)}
+        className={`flex w-full items-center gap-1 rounded px-2 py-1.5 text-left text-sm transition-colors ${
+          isSelected
+            ? 'bg-slate-900 text-white font-medium'
+            : hasChildren
+              ? 'font-semibold text-slate-900 hover:bg-slate-100'
+              : 'text-slate-600 hover:bg-slate-100'
+        }`}
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+      >
+        {!hasChildren && <ChevronRight className="h-3 w-3 flex-shrink-0 opacity-40" />}
+        <span>{node.name}</span>
+      </button>
+      {hasChildren && (
+        <div>
+          {node.children.map((child) => (
+            <CategoryNode
+              key={child.id}
+              node={child}
+              selectedSlug={selectedSlug}
+              onSelect={onSelect}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ProductFilters({ filters, onFilterChange }: ProductFiltersProps) {
-  const { data: categories, isLoading } = useCategories();
+  const { data: tree, isLoading } = useCategoryTree();
 
   const handleCategoryChange = (slug: string) => {
     const newCategory = filters.category === slug ? undefined : slug;
@@ -43,22 +89,19 @@ export function ProductFilters({ filters, onFilterChange }: ProductFiltersProps)
           <Label className="mb-3 block text-sm font-semibold">Categories</Label>
           {isLoading ? (
             <div className="space-y-2">
-              {Array.from({ length: 4 }).map((_, i) => (
+              {Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-6 w-full" />
               ))}
             </div>
           ) : (
-            <div className="space-y-2">
-              {categories?.map((category) => (
-                <label key={category.id} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filters.category === category.slug}
-                    onChange={() => handleCategoryChange(category.slug)}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-2 focus:ring-slate-950"
-                  />
-                  <span className="text-sm text-slate-700">{category.name}</span>
-                </label>
+            <div className="space-y-0.5">
+              {tree?.map((root) => (
+                <CategoryNode
+                  key={root.id}
+                  node={root}
+                  selectedSlug={filters.category}
+                  onSelect={handleCategoryChange}
+                />
               ))}
             </div>
           )}

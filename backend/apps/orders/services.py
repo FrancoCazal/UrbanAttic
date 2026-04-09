@@ -6,7 +6,7 @@ from django.db.models import F
 from rest_framework.exceptions import ValidationError
 from apps.cart.services import CartService
 from apps.orders.models import Order, OrderItem
-from apps.products.models import Product
+from apps.products.models import ProductVariant
 
 
 class CheckoutService:
@@ -19,33 +19,33 @@ class CheckoutService:
         if not cart_items:
             raise ValidationError({'detail': 'Cart is empty.'})
 
-        product_ids = [item['product_id'] for item in cart_items]
+        variant_ids = [item['variant_id'] for item in cart_items]
 
         with transaction.atomic():
-            products = Product.objects.filter(
-                id__in=product_ids, is_active=True,
-            ).select_for_update().in_bulk()
+            variants = ProductVariant.objects.filter(
+                id__in=variant_ids, is_active=True,
+            ).select_for_update().select_related('product').in_bulk()
 
             order_items_data = []
             total = Decimal('0.00')
 
             for item in cart_items:
-                product = products.get(item['product_id'])
-                if product is None:
+                variant = variants.get(item['variant_id'])
+                if variant is None:
                     raise ValidationError({
-                        'detail': f'Product with id {item["product_id"]} is not available.'
+                        'detail': f'Variant with id {item["variant_id"]} is not available.'
                     })
-                if product.stock < item['quantity']:
+                if variant.stock < item['quantity']:
                     raise ValidationError({
-                        'detail': f'Insufficient stock for "{product.name}". '
-                                  f'Available: {product.stock}, requested: {item["quantity"]}.'
+                        'detail': f'Insufficient stock for "{variant}". '
+                                  f'Available: {variant.stock}, requested: {item["quantity"]}.'
                     })
-                line_total = product.price * item['quantity']
+                line_total = variant.price * item['quantity']
                 total += line_total
                 order_items_data.append({
-                    'product': product,
+                    'variant': variant,
                     'quantity': item['quantity'],
-                    'price': product.price,
+                    'price': variant.price,
                 })
 
             order = Order.objects.create(
@@ -59,11 +59,11 @@ class CheckoutService:
             for data in order_items_data:
                 order_items.append(OrderItem(
                     order=order,
-                    product=data['product'],
+                    variant=data['variant'],
                     quantity=data['quantity'],
                     price=data['price'],
                 ))
-                Product.objects.filter(pk=data['product'].pk).update(
+                ProductVariant.objects.filter(pk=data['variant'].pk).update(
                     stock=F('stock') - data['quantity']
                 )
 
@@ -79,13 +79,13 @@ class StripeCheckoutService:
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
         line_items = []
-        for item in order.items.select_related('product').all():
+        for item in order.items.select_related('variant__product').all():
             line_items.append({
                 'price_data': {
                     'currency': 'usd',
                     'unit_amount': int(item.price * 100),
                     'product_data': {
-                        'name': item.product.name,
+                        'name': f'{item.variant.product.name} - {item.variant.name}',
                     },
                 },
                 'quantity': item.quantity,

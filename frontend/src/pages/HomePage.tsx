@@ -11,7 +11,7 @@ export function HomePage() {
     <div className="container mx-auto px-4 py-8">
       <section className="mb-16 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-700 px-8 py-20 text-white">
         <div className="mx-auto max-w-3xl text-center">
-          <h1 className="mb-6 text-5xl font-bold">Welcome to CartPro</h1>
+          <h1 className="mb-6 text-5xl font-bold">Welcome to Urban Attic</h1>
           <p className="mb-8 text-xl text-slate-200">
             Discover amazing products at unbeatable prices. Shop now and enjoy fast, reliable delivery.
           </p>

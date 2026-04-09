@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/api/client';
-import { Product, ProductDetail, Category, PaginatedResponse } from '@/lib/types';
+import { Product, ProductDetail, Category, CategoryTree, PaginatedResponse } from '@/lib/types';
 
 interface ProductFilters {
   search?: string;
@@ -48,6 +48,17 @@ export function useCategories() {
     queryKey: ['categories'],
     queryFn: async () => {
       const { data } = await api.get('/categories/');
+      return data.results ?? data;
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useCategoryTree() {
+  return useQuery<CategoryTree[]>({
+    queryKey: ['categories', 'tree'],
+    queryFn: async () => {
+      const { data } = await api.get('/categories/tree/');
       return data.results ?? data;
     },
     staleTime: 1000 * 60 * 10,

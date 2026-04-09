@@ -2,8 +2,8 @@ import pytest
 from decimal import Decimal
 from unittest.mock import patch
 from apps.orders.models import Order, OrderItem
-from apps.products.tests.factories import ProductFactory
-from apps.products.models import Product
+from apps.products.models import ProductVariant
+from apps.products.tests.factories import ProductVariantFactory
 
 
 @pytest.mark.django_db
@@ -37,12 +37,11 @@ class TestOrderCreate:
     @patch('apps.orders.api.views.StripeCheckoutService.create_checkout_session', return_value='https://checkout.stripe.com/test')
     @patch('apps.orders.services.CartService')
     def test_create_order_from_cart(self, MockCartService, mock_stripe, auth_client, user):
-        product = ProductFactory(price=Decimal('25.00'), stock=10)
+        variant = ProductVariantFactory(price=Decimal('25.00'), stock=10)
 
-        # Mock CartService to return cart items without Redis
         mock_cart = MockCartService.return_value
         mock_cart.get_items.return_value = [
-            {'product_id': product.id, 'quantity': 2},
+            {'variant_id': variant.id, 'quantity': 2},
         ]
         mock_cart.clear.return_value = None
 
@@ -56,20 +55,20 @@ class TestOrderCreate:
         mock_stripe.assert_called_once()
         mock_cart.clear.assert_called_once()
 
-        product.refresh_from_db()
-        assert product.stock == 8
+        variant.refresh_from_db()
+        assert variant.stock == 8
 
 
 @pytest.mark.django_db
 class TestOrderCancel:
     def test_cancel_pending_order(self, auth_client, user):
-        product = ProductFactory(stock=8)
+        variant = ProductVariantFactory(stock=8)
         order = Order.objects.create(
             user=user, total_amount=Decimal('50.00'),
             status=Order.Status.PENDING,
         )
         OrderItem.objects.create(
-            order=order, product=product, quantity=2,
+            order=order, variant=variant, quantity=2,
             price=Decimal('25.00'),
         )
 
@@ -77,8 +76,8 @@ class TestOrderCancel:
         assert response.status_code == 200
         assert response.data['status'] == 'cancelled'
 
-        product.refresh_from_db()
-        assert product.stock == 10  # restored
+        variant.refresh_from_db()
+        assert variant.stock == 10  # restored
 
     def test_cannot_cancel_shipped_order(self, auth_client, user):
         order = Order.objects.create(

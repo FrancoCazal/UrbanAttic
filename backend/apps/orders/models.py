@@ -44,8 +44,9 @@ class OrderItem(TimeStampedModel):
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name='items',
     )
-    product = models.ForeignKey(
-        'products.Product', on_delete=models.PROTECT, related_name='order_items',
+    variant = models.ForeignKey(
+        'products.ProductVariant', on_delete=models.PROTECT,
+        related_name='order_items',
     )
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -55,7 +56,7 @@ class OrderItem(TimeStampedModel):
         verbose_name_plural = 'order items'
 
     def __str__(self):
-        return f'{self.quantity}x {self.product.name} @ {self.price}'
+        return f'{self.quantity}x {self.variant} @ {self.price}'
 
     @property
     def line_total(self):

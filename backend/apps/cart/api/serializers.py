@@ -2,11 +2,14 @@ from rest_framework import serializers
 
 
 class CartItemSerializer(serializers.Serializer):
+    variant_id = serializers.IntegerField()
     product_id = serializers.IntegerField()
     product_name = serializers.CharField()
     product_slug = serializers.SlugField()
-    product_price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    product_image = serializers.URLField(allow_null=True)
+    variant_name = serializers.CharField()
+    sku = serializers.CharField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    image = serializers.URLField(allow_null=True)
     quantity = serializers.IntegerField()
     line_total = serializers.DecimalField(max_digits=10, decimal_places=2)
 
@@ -18,7 +21,7 @@ class CartDetailSerializer(serializers.Serializer):
 
 
 class AddToCartSerializer(serializers.Serializer):
-    product_id = serializers.IntegerField()
+    variant_id = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value=1, default=1)
 
 

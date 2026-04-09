@@ -1,8 +1,7 @@
 import pytest
-from unittest.mock import patch, MagicMock
 from decimal import Decimal
 from apps.cart.services import CartService
-from apps.products.tests.factories import ProductFactory
+from apps.products.tests.factories import ProductVariantFactory
 
 
 class FakeRedis:
@@ -66,7 +65,7 @@ class TestCartService:
         cart_service.add(2, 1)
         items = cart_service.get_items()
         assert len(items) == 2
-        ids = {item['product_id'] for item in items}
+        ids = {item['variant_id'] for item in items}
         assert ids == {1, 2}
 
     def test_update_item(self, cart_service):
@@ -88,7 +87,7 @@ class TestCartService:
         cart_service.remove(1)
         items = cart_service.get_items()
         assert len(items) == 1
-        assert items[0]['product_id'] == 2
+        assert items[0]['variant_id'] == 2
 
     def test_clear(self, cart_service):
         cart_service.add(1, 2)
@@ -103,18 +102,18 @@ class TestCartService:
         assert detail['total'] == Decimal('0.00')
         assert detail['count'] == 0
 
-    def test_get_cart_detail_with_products(self, cart_service):
-        p1 = ProductFactory(price=Decimal('10.00'))
-        p2 = ProductFactory(price=Decimal('20.00'))
-        cart_service.add(p1.id, 2)
-        cart_service.add(p2.id, 1)
+    def test_get_cart_detail_with_variants(self, cart_service):
+        v1 = ProductVariantFactory(price=Decimal('10.00'))
+        v2 = ProductVariantFactory(price=Decimal('20.00'))
+        cart_service.add(v1.id, 2)
+        cart_service.add(v2.id, 1)
         detail = cart_service.get_cart_detail()
         assert detail['total'] == Decimal('40.00')
         assert detail['count'] == 3
         assert len(detail['items']) == 2
 
-    def test_get_cart_detail_removes_inactive_products(self, cart_service):
-        p = ProductFactory(is_active=False)
-        cart_service.add(p.id, 1)
+    def test_get_cart_detail_removes_inactive_variants(self, cart_service):
+        v = ProductVariantFactory(is_active=False)
+        cart_service.add(v.id, 1)
         detail = cart_service.get_cart_detail()
         assert len(detail['items']) == 0

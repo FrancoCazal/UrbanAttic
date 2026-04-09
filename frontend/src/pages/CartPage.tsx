@@ -52,7 +52,7 @@ export function CartPage() {
           <Card>
             <CardContent className="p-6">
               {cart.items.map((item) => (
-                <CartItem key={item.product_id} item={item} />
+                <CartItem key={item.variant_id} item={item} />
               ))}
             </CardContent>
           </Card>

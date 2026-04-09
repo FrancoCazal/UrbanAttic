@@ -20,8 +20,8 @@ export function useAddToCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ product_id, quantity }: { product_id: number; quantity: number }) => {
-      const { data } = await api.post('/cart/add/', { product_id, quantity });
+    mutationFn: async ({ variant_id, quantity }: { variant_id: number; quantity: number }) => {
+      const { data } = await api.post('/cart/add/', { variant_id, quantity });
       return data;
     },
     onSuccess: () => {
@@ -34,8 +34,8 @@ export function useUpdateCartItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ product_id, quantity }: { product_id: number; quantity: number }) => {
-      const { data } = await api.patch(`/cart/update/${product_id}/`, { quantity });
+    mutationFn: async ({ variant_id, quantity }: { variant_id: number; quantity: number }) => {
+      const { data } = await api.patch(`/cart/update/${variant_id}/`, { quantity });
       return data;
     },
     onSuccess: () => {
@@ -48,8 +48,8 @@ export function useRemoveCartItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (product_id: number) => {
-      await api.delete(`/cart/remove/${product_id}/`);
+    mutationFn: async (variant_id: number) => {
+      await api.delete(`/cart/remove/${variant_id}/`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });

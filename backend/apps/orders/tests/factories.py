@@ -2,7 +2,7 @@ import factory
 from decimal import Decimal
 from apps.orders.models import Order, OrderItem
 from apps.users.models import User
-from apps.products.tests.factories import ProductFactory
+from apps.products.tests.factories import ProductVariantFactory
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -29,6 +29,6 @@ class OrderItemFactory(factory.django.DjangoModelFactory):
         model = OrderItem
 
     order = factory.SubFactory(OrderFactory)
-    product = factory.SubFactory(ProductFactory)
+    variant = factory.SubFactory(ProductVariantFactory)
     quantity = 2
     price = Decimal('29.99')

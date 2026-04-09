@@ -12,6 +12,13 @@ export interface Category {
   slug: string;
 }
 
+export interface CategoryTree {
+  id: number;
+  name: string;
+  slug: string;
+  children: CategoryTree[];
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -22,9 +29,30 @@ export interface Product {
   image: string | null;
 }
 
+export interface ProductImage {
+  id: number;
+  image: string;
+  alt_text: string;
+  position: number;
+  is_primary: boolean;
+}
+
+export interface ProductVariant {
+  id: number;
+  name: string;
+  sku: string;
+  price: string;
+  stock: number;
+  attributes: Record<string, string>;
+  is_main: boolean;
+  image_url: string | null;
+}
+
 export interface ProductDetail extends Product {
   description: string;
   category: Category;
+  images: ProductImage[];
+  variants: ProductVariant[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -38,11 +66,14 @@ export interface PaginatedResponse<T> {
 }
 
 export interface CartItem {
+  variant_id: number;
   product_id: number;
   product_name: string;
   product_slug: string;
-  product_price: string;
-  product_image: string | null;
+  variant_name: string;
+  sku: string;
+  price: string;
+  image: string | null;
   quantity: number;
   line_total: string;
 }

@@ -27,7 +27,7 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-xl font-bold text-slate-900">
             <Home className="h-6 w-6" />
-            <span>CartPro</span>
+            <span>Urban Attic</span>
           </Link>
 
           <div className="flex items-center gap-6">

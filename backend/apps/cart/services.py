@@ -1,13 +1,13 @@
 import redis
 from decimal import Decimal
 from django.conf import settings
-from apps.products.models import Product
+from apps.products.models import ProductVariant
 
 
 class CartService:
     """
     Redis-backed cart. Each user's cart is a Redis hash at key
-    'cart:user:{user_id}', where field = product_id, value = quantity.
+    'cart:user:{user_id}', where field = variant_id, value = quantity.
     """
 
     def __init__(self, user):
@@ -21,54 +21,68 @@ class CartService:
     def get_items(self):
         raw = self.redis.hgetall(self.key)
         return [
-            {'product_id': int(pid), 'quantity': int(qty)}
-            for pid, qty in raw.items()
+            {'variant_id': int(vid), 'quantity': int(qty)}
+            for vid, qty in raw.items()
         ]
 
-    def add(self, product_id, quantity=1):
-        new_qty = self.redis.hincrby(self.key, str(product_id), quantity)
+    def add(self, variant_id, quantity=1):
+        new_qty = self.redis.hincrby(self.key, str(variant_id), quantity)
         self._refresh_ttl()
         return new_qty
 
-    def update(self, product_id, quantity):
+    def update(self, variant_id, quantity):
         if quantity <= 0:
-            return self.remove(product_id)
-        self.redis.hset(self.key, str(product_id), quantity)
+            return self.remove(variant_id)
+        self.redis.hset(self.key, str(variant_id), quantity)
         self._refresh_ttl()
         return quantity
 
-    def remove(self, product_id):
-        self.redis.hdel(self.key, str(product_id))
+    def remove(self, variant_id):
+        self.redis.hdel(self.key, str(variant_id))
         self._refresh_ttl()
 
     def clear(self):
         self.redis.delete(self.key)
 
-    def get_cart_detail(self):
+    def get_cart_detail(self, request=None):
         items = self.get_items()
         if not items:
             return {'items': [], 'total': Decimal('0.00'), 'count': 0}
 
-        product_ids = [item['product_id'] for item in items]
-        products = Product.objects.filter(
-            id__in=product_ids, is_active=True,
-        ).in_bulk()
+        variant_ids = [item['variant_id'] for item in items]
+        variants = ProductVariant.objects.filter(
+            id__in=variant_ids, is_active=True,
+        ).select_related('product', 'image').in_bulk()
 
         cart_items = []
         total = Decimal('0.00')
         for item in items:
-            product = products.get(item['product_id'])
-            if product is None:
-                self.remove(item['product_id'])
+            variant = variants.get(item['variant_id'])
+            if variant is None:
+                self.remove(item['variant_id'])
                 continue
-            line_total = product.price * item['quantity']
+            line_total = variant.price * item['quantity']
             total += line_total
+
+            image_url = None
+            if variant.image and variant.image.image:
+                url = variant.image.image.url
+                image_url = request.build_absolute_uri(url) if request else url
+            elif variant.product.primary_image:
+                img = variant.product.primary_image
+                if img.image:
+                    url = img.image.url
+                    image_url = request.build_absolute_uri(url) if request else url
+
             cart_items.append({
-                'product_id': product.id,
-                'product_name': product.name,
-                'product_slug': product.slug,
-                'product_price': product.price,
-                'product_image': product.image.url if product.image else None,
+                'variant_id': variant.id,
+                'product_id': variant.product.id,
+                'product_name': variant.product.name,
+                'product_slug': variant.product.slug,
+                'variant_name': variant.name,
+                'sku': variant.sku,
+                'price': variant.price,
+                'image': image_url,
                 'quantity': item['quantity'],
                 'line_total': line_total,
             })
