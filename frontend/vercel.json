@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://drf-ecommerce-production-34cf.up.railway.app/api/:path*" }
+    { "source": "/api/:path*", "destination": "https://drf-ecommerce-production-34cf.up.railway.app/api/:path*" },
+    { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
 }

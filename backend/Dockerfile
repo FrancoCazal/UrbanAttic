@@ -16,7 +16,7 @@ COPY . .
 
 ENV DJANGO_SETTINGS_MODULE=config.settings.production
 
-EXPOSE 8000
+EXPOSE ${PORT:-8000}
 
 RUN DJANGO_SETTINGS_MODULE=config.settings.production \
     SECRET_KEY=build-only-dummy-key \
