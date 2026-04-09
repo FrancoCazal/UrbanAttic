@@ -63,7 +63,7 @@ export function HomePage() {
               className={`group relative aspect-[3/4] overflow-hidden ${i < 2 ? 'border-b-2 md:border-b-0 md:border-r-2 border-on-surface' : ''}`}
             >
               <img
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-full object-cover grayscale brightness-75 transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100"
                 src={cat.img}
                 alt={cat.name}
               />
