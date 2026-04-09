@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { CheckCircle, Package, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useT } from '@/lib/settings-context';
 
 export function CheckoutSuccessPage() {
+  const t = useT();
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="mx-auto max-w-md text-center">
@@ -14,12 +16,11 @@ export function CheckoutSuccessPage() {
             </div>
 
             <div>
-              <h1 className="mb-2 text-2xl font-bold text-on-surface">
-                Payment Successful!
+              <h1 className="mb-2 text-2xl font-bold font-headline uppercase tracking-tighter text-on-surface">
+                {t.checkout.successTitle}
               </h1>
               <p className="text-secondary">
-                Your order has been confirmed and is now being processed.
-                You will receive a confirmation email shortly.
+                {t.checkout.successMessage}
               </p>
             </div>
 
@@ -27,12 +28,12 @@ export function CheckoutSuccessPage() {
               <Link to="/orders">
                 <Button className="w-full gap-2">
                   <Package className="h-4 w-4" />
-                  View My Orders
+                  {t.checkout.viewMyOrders}
                 </Button>
               </Link>
               <Link to="/products">
                 <Button variant="outline" className="w-full gap-2">
-                  Continue Shopping
+                  {t.checkout.continueShopping}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

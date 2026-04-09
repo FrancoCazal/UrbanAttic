@@ -9,8 +9,10 @@ import { useUser } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
 import { ProductVariant } from '@/lib/types';
 import { toast } from 'sonner';
+import { useT } from '@/lib/settings-context';
 
 export function ProductDetailPage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const { data: product, isLoading } = useProduct(slug!);
   const { data: user } = useUser();
@@ -50,15 +52,15 @@ export function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!user) {
-      toast.error('Please login to add items to your haul');
+      toast.error(t.product.loginRequired);
       return;
     }
     if (!selectedVariant) {
-      toast.error('Please select all options');
+      toast.error(t.product.selectOptions);
       return;
     }
     if (selectedVariant.stock === 0) {
-      toast.error('This variant is sold out');
+      toast.error(t.product.variantSoldOut);
       return;
     }
 
@@ -66,7 +68,7 @@ export function ProductDetailPage() {
       { variant_id: selectedVariant.id, quantity },
       {
         onSuccess: () => {
-          toast.success(`${product!.name} secured`);
+          toast.success(`${product!.name} ${t.product.addedToast}`);
           setQuantity(1);
         },
         onError: () => {
@@ -95,9 +97,9 @@ export function ProductDetailPage() {
   if (!product) {
     return (
       <div className="max-w-[1600px] mx-auto px-6 py-16 text-center">
-        <h1 className="mb-4 font-headline text-4xl font-black uppercase tracking-tighter">PRODUCT NOT FOUND</h1>
+        <h1 className="mb-4 font-headline text-4xl font-black uppercase tracking-tighter">{t.product.notFound}</h1>
         <Link to="/products" className="font-headline font-bold uppercase text-sm text-primary hover:underline">
-          BACK TO CATALOG
+          {t.product.backToCatalog}
         </Link>
       </div>
     );
@@ -110,7 +112,7 @@ export function ProductDetailPage() {
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-8 md:py-12">
       <Link to="/products" className="mb-8 inline-flex items-center gap-2 text-sm font-headline font-bold uppercase tracking-wider text-secondary hover:text-on-surface transition-colors">
         <ArrowLeft className="h-4 w-4" />
-        BACK TO CATALOG
+        {t.product.backToCatalog}
       </Link>
 
       <div className="grid gap-12 lg:grid-cols-2">
@@ -170,7 +172,7 @@ export function ProductDetailPage() {
           {colors.length > 0 && (
             <div>
               <label className="mb-3 block text-xs font-bold font-headline uppercase tracking-widest">
-                COLOR: <span className="text-secondary">{activeColor}</span>
+                {t.product.color}: <span className="text-secondary">{activeColor}</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {colors.map((color) => (
@@ -194,7 +196,7 @@ export function ProductDetailPage() {
           {sizes.length > 0 && (
             <div>
               <label className="mb-3 block text-xs font-bold font-headline uppercase tracking-widest">
-                SIZE: <span className="text-secondary">{activeSize}</span>
+                {t.product.size}: <span className="text-secondary">{activeSize}</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {sizes.map((size) => (
@@ -217,9 +219,9 @@ export function ProductDetailPage() {
           {/* Stock & SKU */}
           <div className="flex items-center gap-3">
             {displayStock > 0 ? (
-              <Badge variant="success">IN STOCK ({displayStock})</Badge>
+              <Badge variant="success">{t.product.inStock} ({displayStock})</Badge>
             ) : (
-              <Badge variant="destructive">SOLD OUT</Badge>
+              <Badge variant="destructive">{t.product.soldOut}</Badge>
             )}
             {selectedVariant && (
               <span className="text-xs text-secondary font-headline uppercase">SKU: {selectedVariant.sku}</span>
@@ -230,7 +232,7 @@ export function ProductDetailPage() {
           {displayStock > 0 && (
             <div className="space-y-4 pt-4 border-t-2 border-on-surface/10">
               <div>
-                <label className="mb-2 block text-xs font-bold font-headline uppercase tracking-widest">QUANTITY</label>
+                <label className="mb-2 block text-xs font-bold font-headline uppercase tracking-widest">{t.product.quantity}</label>
                 <div className="flex items-center border-2 border-on-surface w-fit">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -257,7 +259,7 @@ export function ProductDetailPage() {
                 disabled={addToCart.isPending || !selectedVariant}
                 className="w-full py-5 bg-primary-container text-white font-headline font-black text-xl uppercase tracking-tighter hover:bg-primary transition-all active:scale-95 disabled:opacity-50"
               >
-                {addToCart.isPending ? 'SECURING...' : 'SECURE'}
+                {addToCart.isPending ? t.product.securing : t.product.secure}
               </button>
             </div>
           )}

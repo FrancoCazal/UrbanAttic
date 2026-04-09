@@ -4,12 +4,14 @@ import { CartItem as CartItemType } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { useUpdateCartItem, useRemoveCartItem } from '@/hooks/useCart';
 import { toast } from 'sonner';
+import { useT } from '@/lib/settings-context';
 
 interface CartItemProps {
   item: CartItemType;
 }
 
 export function CartItem({ item }: CartItemProps) {
+  const t = useT();
   const updateCartItem = useUpdateCartItem();
   const removeCartItem = useRemoveCartItem();
 
@@ -29,7 +31,7 @@ export function CartItem({ item }: CartItemProps) {
   const handleRemove = () => {
     removeCartItem.mutate(item.variant_id, {
       onSuccess: () => {
-        toast.success('Item removed from haul');
+        toast.success(t.cart.itemRemoved);
       },
       onError: () => {
         toast.error('Failed to remove item');

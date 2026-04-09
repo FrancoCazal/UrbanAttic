@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import { Product } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
+import { useT } from '@/lib/settings-context';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const t = useT();
   const imageUrl = product.image || null;
   const categoryName = typeof product.category === 'object' ? product.category.name : '';
 
@@ -22,12 +24,12 @@ export function ProductCard({ product }: ProductCardProps) {
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-secondary font-headline uppercase text-sm">
-              NO IMAGE
+              {t.product.noImage}
             </div>
           )}
           {product.stock === 0 && (
             <div className="absolute top-4 right-4 bg-on-surface text-white text-[10px] font-bold px-2 py-1 uppercase font-headline">
-              SOLD OUT
+              {t.catalog.soldOut}
             </div>
           )}
         </div>

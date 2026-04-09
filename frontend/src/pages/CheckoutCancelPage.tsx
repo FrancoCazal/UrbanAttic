@@ -4,8 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCreateCheckoutSession, useCancelOrder } from '@/hooks/useOrders';
 import { toast } from 'sonner';
+import { useT } from '@/lib/settings-context';
 
 export function CheckoutCancelPage() {
+  const t = useT();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order_id');
   const retryCheckout = useCreateCheckoutSession();
@@ -47,12 +49,11 @@ export function CheckoutCancelPage() {
             </div>
 
             <div>
-              <h1 className="mb-2 text-2xl font-bold text-on-surface">
-                Payment Cancelled
+              <h1 className="mb-2 text-2xl font-bold font-headline uppercase tracking-tighter text-on-surface">
+                {t.checkout.cancelledTitle}
               </h1>
               <p className="text-secondary">
-                Your payment was not completed. Your order is still pending
-                and no charges were made.
+                {t.checkout.cancelledMessage}
               </p>
             </div>
 
@@ -64,7 +65,7 @@ export function CheckoutCancelPage() {
                   disabled={retryCheckout.isPending}
                 >
                   <RefreshCw className="h-4 w-4" />
-                  {retryCheckout.isPending ? 'Redirecting...' : 'Try Again'}
+                  {retryCheckout.isPending ? t.orders.redirecting : t.checkout.tryAgain}
                 </Button>
                 <Button
                   variant="outline"
@@ -73,7 +74,7 @@ export function CheckoutCancelPage() {
                   disabled={cancelOrder.isPending}
                 >
                   <Trash2 className="h-4 w-4" />
-                  Cancel Order
+                  {t.orders.cancelOrder}
                 </Button>
               </div>
             )}
@@ -82,7 +83,7 @@ export function CheckoutCancelPage() {
               to="/products"
               className="block text-sm text-secondary hover:text-on-surface"
             >
-              Return to shop
+              {t.checkout.returnToShop}
             </Link>
           </CardContent>
         </Card>

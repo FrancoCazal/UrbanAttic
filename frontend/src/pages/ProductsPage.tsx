@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { ProductGrid } from '@/components/products/ProductGrid';
 import { ProductFilters } from '@/components/products/ProductFilters';
 import { useProducts } from '@/hooks/useProducts';
+import { useT } from '@/lib/settings-context';
 
 const PAGE_SIZE = 8;
 
 export function ProductsPage() {
+  const t = useT();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -81,12 +83,12 @@ export function ProductsPage() {
     <div className="max-w-[1600px] mx-auto px-6 py-12 md:py-20">
       {/* Header */}
       <header className="mb-16 border-b-2 border-on-surface pb-8">
-        <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter leading-none mb-4 font-headline">THE CATALOG</h1>
+        <h1 className="text-5xl sm:text-7xl md:text-9xl font-black uppercase tracking-tighter leading-none mb-4 font-headline">{t.catalog.title}</h1>
         <div className="flex justify-between items-end">
           <p className="max-w-md text-secondary font-medium uppercase text-sm tracking-widest">
-            Curated for the concrete landscape.
+            {t.catalog.subtitle}
           </p>
-          <div className="text-xs font-bold tracking-widest font-headline uppercase hidden md:block">EST. 2018 / ASUNCION</div>
+          <div className="text-xs font-bold tracking-widest font-headline uppercase hidden md:block">{t.catalog.established}</div>
         </div>
       </header>
 
@@ -97,7 +99,7 @@ export function ProductsPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
             <Input
               type="text"
-              placeholder="SCAN..."
+              placeholder={t.catalog.scanPlaceholder}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="pl-10"
@@ -109,7 +111,7 @@ export function ProductsPage() {
           className="flex items-center gap-2 border-2 border-on-surface px-4 py-2 font-headline font-bold text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all w-full justify-center"
         >
           {filtersOpen ? <X className="h-4 w-4" /> : <SlidersHorizontal className="h-4 w-4" />}
-          {filtersOpen ? 'CLOSE FILTERS' : 'FILTERS'}
+          {filtersOpen ? t.nav.closeFilters : t.nav.filters}
         </button>
         {filtersOpen && (
           <div className="border-2 border-on-surface p-6">
@@ -127,7 +129,7 @@ export function ProductsPage() {
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
                 <Input
                   type="text"
-                  placeholder="SCAN..."
+                  placeholder={t.catalog.scanPlaceholder}
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   className="pl-10"
@@ -146,7 +148,7 @@ export function ProductsPage() {
         <section className="flex-grow">
           {data && (
             <div className="mb-8 text-xs text-secondary font-headline font-bold uppercase tracking-widest">
-              {data.count} OBJECTS FOUND
+              {data.count} {t.catalog.objectsFound}
             </div>
           )}
 
@@ -160,7 +162,7 @@ export function ProductsPage() {
                 disabled={!hasPrevPage}
                 className="flex items-center gap-2 hover:text-primary transition-colors disabled:opacity-30"
               >
-                <ArrowLeft className="h-4 w-4" /> PREV
+                <ArrowLeft className="h-4 w-4" /> {t.catalog.prev}
               </button>
               <span className="text-on-surface">PAGE {String(filters.page).padStart(2, '0')}</span>
               <button
@@ -168,7 +170,7 @@ export function ProductsPage() {
                 disabled={!hasNextPage}
                 className="flex items-center gap-2 hover:text-primary transition-colors disabled:opacity-30"
               >
-                NEXT <ArrowRight className="h-4 w-4" />
+                {t.catalog.next} <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           )}

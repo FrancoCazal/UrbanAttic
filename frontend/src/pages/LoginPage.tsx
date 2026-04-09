@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLogin, useUser } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useT } from '@/lib/settings-context';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -18,6 +19,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
+  const t = useT();
   const navigate = useNavigate();
   const location = useLocation();
   const { data: user } = useUser();
@@ -56,50 +58,30 @@ export function LoginPage() {
     <div className="container mx-auto flex min-h-[calc(100vh-200px)] items-center justify-center px-4 py-8">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your email and password to access your account</CardDescription>
+          <CardTitle className="text-2xl font-headline uppercase tracking-tighter">{t.auth.loginTitle}</CardTitle>
+          <CardDescription>{t.auth.loginDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register('email')}
-                placeholder="you@example.com"
-                className="mt-2"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
-              )}
+              <Label htmlFor="email" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.auth.emailLabel}</Label>
+              <Input id="email" type="email" {...register('email')} placeholder="you@example.com" className="mt-2" />
+              {errors.email && <p className="mt-1 text-sm text-primary">{errors.email.message}</p>}
             </div>
-
             <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register('password')}
-                placeholder="Enter your password"
-                className="mt-2"
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
-              )}
+              <Label htmlFor="password" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.auth.passwordLabel}</Label>
+              <Input id="password" type="password" {...register('password')} placeholder="********" className="mt-2" />
+              {errors.password && <p className="mt-1 text-sm text-primary">{errors.password.message}</p>}
             </div>
-
             <Button type="submit" className="w-full" disabled={login.isPending}>
-              {login.isPending ? 'Logging in...' : 'Login'}
+              {login.isPending ? t.auth.loggingIn : t.auth.loginTitle}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-secondary">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-on-surface hover:underline">
-              Register
-            </Link>
+            {t.auth.noAccount}{' '}
+            <Link to="/register" className="font-medium text-on-surface hover:underline">{t.auth.registerTitle}</Link>
           </p>
         </CardFooter>
       </Card>

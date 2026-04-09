@@ -2,6 +2,7 @@ import { useCategoryTree } from '@/hooks/useProducts';
 import { CategoryTree } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useT } from '@/lib/settings-context';
 
 interface ProductFiltersProps {
   filters: {
@@ -57,6 +58,7 @@ function CategoryNode({ node, selectedSlug, onSelect, depth = 0 }: CategoryNodeP
 }
 
 export function ProductFilters({ filters, onFilterChange }: ProductFiltersProps) {
+  const t = useT();
   const { data: tree, isLoading } = useCategoryTree();
 
   const handleCategoryChange = (slug: string) => {
@@ -80,7 +82,7 @@ export function ProductFilters({ filters, onFilterChange }: ProductFiltersProps)
       {/* Categories */}
       <section>
         <h3 className="font-headline font-bold uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
-          <span className="w-2 h-2 bg-primary"></span> CATEGORIES
+          <span className="w-2 h-2 bg-primary"></span> {t.catalog.categories}
         </h3>
         {isLoading ? (
           <div className="space-y-2">
@@ -105,12 +107,12 @@ export function ProductFilters({ filters, onFilterChange }: ProductFiltersProps)
       {/* Price Range */}
       <section>
         <h3 className="font-headline font-bold uppercase text-xs tracking-widest mb-6 flex items-center gap-2">
-          <span className="w-2 h-2 bg-on-surface"></span> PRICE RANGE
+          <span className="w-2 h-2 bg-on-surface"></span> {t.catalog.priceRange}
         </h3>
         <div className="space-y-3">
           <div>
             <label className="mb-1 block text-[10px] font-bold font-headline uppercase text-secondary">
-              MIN PRICE
+              {t.catalog.minPrice}
             </label>
             <Input
               type="number"
@@ -123,7 +125,7 @@ export function ProductFilters({ filters, onFilterChange }: ProductFiltersProps)
           </div>
           <div>
             <label className="mb-1 block text-[10px] font-bold font-headline uppercase text-secondary">
-              MAX PRICE
+              {t.catalog.maxPrice}
             </label>
             <Input
               type="number"
@@ -142,7 +144,7 @@ export function ProductFilters({ filters, onFilterChange }: ProductFiltersProps)
           onClick={handleClearFilters}
           className="w-full border-2 border-on-surface py-3 font-headline font-bold text-xs tracking-widest hover:bg-on-surface hover:text-background transition-all uppercase"
         >
-          RESET FILTERS
+          {t.catalog.resetFilters}
         </button>
       )}
     </div>

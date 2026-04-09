@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRegister, useUser } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useT } from '@/lib/settings-context';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -24,6 +25,7 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterPage() {
+  const t = useT();
   const navigate = useNavigate();
   const { data: user } = useUser();
   const register = useRegister();
@@ -60,92 +62,47 @@ export function RegisterPage() {
     <div className="container mx-auto flex min-h-[calc(100vh-200px)] items-center justify-center px-4 py-8">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Register</CardTitle>
-          <CardDescription>Create a new account to start shopping</CardDescription>
+          <CardTitle className="text-2xl font-headline uppercase tracking-tighter">{t.auth.registerTitle}</CardTitle>
+          <CardDescription>{t.auth.registerDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                {...registerField('email')}
-                placeholder="you@example.com"
-                className="mt-2"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
-              )}
+              <Label htmlFor="email" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.auth.emailLabel}</Label>
+              <Input id="email" type="email" {...registerField('email')} placeholder="you@example.com" className="mt-2" />
+              {errors.email && <p className="mt-1 text-sm text-primary">{errors.email.message}</p>}
             </div>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="first_name">First Name</Label>
-                <Input
-                  id="first_name"
-                  {...registerField('first_name')}
-                  placeholder="John"
-                  className="mt-2"
-                />
-                {errors.first_name && (
-                  <p className="mt-1 text-sm text-red-500">{errors.first_name.message}</p>
-                )}
+                <Label htmlFor="first_name" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.auth.firstNameLabel}</Label>
+                <Input id="first_name" {...registerField('first_name')} className="mt-2" />
+                {errors.first_name && <p className="mt-1 text-sm text-primary">{errors.first_name.message}</p>}
               </div>
-
               <div>
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input
-                  id="last_name"
-                  {...registerField('last_name')}
-                  placeholder="Doe"
-                  className="mt-2"
-                />
-                {errors.last_name && (
-                  <p className="mt-1 text-sm text-red-500">{errors.last_name.message}</p>
-                )}
+                <Label htmlFor="last_name" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.auth.lastNameLabel}</Label>
+                <Input id="last_name" {...registerField('last_name')} className="mt-2" />
+                {errors.last_name && <p className="mt-1 text-sm text-primary">{errors.last_name.message}</p>}
               </div>
             </div>
-
             <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                {...registerField('password')}
-                placeholder="At least 8 characters"
-                className="mt-2"
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
-              )}
+              <Label htmlFor="password" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.auth.passwordLabel}</Label>
+              <Input id="password" type="password" {...registerField('password')} placeholder="********" className="mt-2" />
+              {errors.password && <p className="mt-1 text-sm text-primary">{errors.password.message}</p>}
             </div>
-
             <div>
-              <Label htmlFor="confirm_password">Confirm Password</Label>
-              <Input
-                id="confirm_password"
-                type="password"
-                {...registerField('confirm_password')}
-                placeholder="Re-enter your password"
-                className="mt-2"
-              />
-              {errors.confirm_password && (
-                <p className="mt-1 text-sm text-red-500">{errors.confirm_password.message}</p>
-              )}
+              <Label htmlFor="confirm_password" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.auth.confirmPasswordLabel}</Label>
+              <Input id="confirm_password" type="password" {...registerField('confirm_password')} placeholder="********" className="mt-2" />
+              {errors.confirm_password && <p className="mt-1 text-sm text-primary">{errors.confirm_password.message}</p>}
             </div>
-
             <Button type="submit" className="w-full" disabled={register.isPending}>
-              {register.isPending ? 'Creating account...' : 'Register'}
+              {register.isPending ? t.auth.creatingAccount : t.auth.registerTitle}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-secondary">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-on-surface hover:underline">
-              Login
-            </Link>
+            {t.auth.hasAccount}{' '}
+            <Link to="/login" className="font-medium text-on-surface hover:underline">{t.auth.loginTitle}</Link>
           </p>
         </CardFooter>
       </Card>

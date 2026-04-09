@@ -15,15 +15,17 @@ import {
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import { useOrders } from '@/hooks/useOrders';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { useT } from '@/lib/settings-context';
 
 export function OrdersPage() {
+  const t = useT();
   const [page, setPage] = useState(1);
   const { data, isLoading } = useOrders(page);
 
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 text-4xl font-bold text-on-surface">My Orders</h1>
+        <h1 className="mb-8 text-4xl font-bold text-on-surface">{t.orders.title}</h1>
         <div className="space-y-4">
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-16 w-full" />
@@ -39,8 +41,8 @@ export function OrdersPage() {
         <Card>
           <CardContent className="flex flex-col items-center py-16">
             <Package className="mb-4 h-16 w-16 text-secondary" />
-            <h2 className="mb-2 text-2xl font-bold text-on-surface">No orders yet</h2>
-            <p className="mb-6 text-secondary">Start shopping to create your first order</p>
+            <h2 className="mb-2 text-2xl font-bold font-headline uppercase tracking-tighter text-on-surface">{t.orders.noOrders}</h2>
+            <p className="mb-6 text-secondary">{t.orders.startShopping}</p>
             <Link to="/products">
               <Button>Browse Products</Button>
             </Link>
@@ -54,7 +56,7 @@ export function OrdersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-4xl font-bold text-on-surface">My Orders</h1>
+      <h1 className="mb-8 text-4xl font-bold text-on-surface">{t.orders.title}</h1>
 
       <Card>
         <CardContent className="p-0">

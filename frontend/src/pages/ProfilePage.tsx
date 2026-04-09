@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useUser, useUpdateUser } from '@/hooks/useAuth';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useT } from '@/lib/settings-context';
 
 const profileSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -18,6 +19,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export function ProfilePage() {
+  const t = useT();
   const { data: user } = useUser();
   const updateUser = useUpdateUser();
 
@@ -50,23 +52,23 @@ export function ProfilePage() {
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-8 md:py-12">
-      <h1 className="mb-8 text-4xl md:text-7xl font-black font-headline uppercase tracking-tighter">YOUR PROFILE</h1>
+      <h1 className="mb-8 text-4xl md:text-7xl font-black font-headline uppercase tracking-tighter">{t.profile.title}</h1>
 
       <div className="mx-auto max-w-2xl space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline uppercase tracking-tighter">ACCOUNT INFO</CardTitle>
+            <CardTitle className="font-headline uppercase tracking-tighter">{t.profile.accountInfo}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label className="text-[10px] font-bold font-headline uppercase tracking-widest text-secondary">EMAIL</Label>
+              <Label className="text-[10px] font-bold font-headline uppercase tracking-widest text-secondary">{t.profile.email}</Label>
               <p className="mt-1 text-on-surface font-headline">{user.email}</p>
             </div>
 
             <Separator />
 
             <div>
-              <Label className="text-[10px] font-bold font-headline uppercase tracking-widest text-secondary">MEMBER SINCE</Label>
+              <Label className="text-[10px] font-bold font-headline uppercase tracking-widest text-secondary">{t.profile.memberSince}</Label>
               <p className="mt-1 text-on-surface font-headline">{formatDate(user.date_joined)}</p>
             </div>
           </CardContent>
@@ -74,12 +76,12 @@ export function ProfilePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline uppercase tracking-tighter">EDIT PROFILE</CardTitle>
+            <CardTitle className="font-headline uppercase tracking-tighter">{t.profile.editProfile}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <Label htmlFor="first_name" className="text-[10px] font-bold font-headline uppercase tracking-widest">FIRST NAME</Label>
+                <Label htmlFor="first_name" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.profile.firstName}</Label>
                 <Input
                   id="first_name"
                   {...register('first_name')}
@@ -91,7 +93,7 @@ export function ProfilePage() {
               </div>
 
               <div>
-                <Label htmlFor="last_name" className="text-[10px] font-bold font-headline uppercase tracking-widest">LAST NAME</Label>
+                <Label htmlFor="last_name" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.profile.lastName}</Label>
                 <Input
                   id="last_name"
                   {...register('last_name')}
@@ -103,7 +105,7 @@ export function ProfilePage() {
               </div>
 
               <Button type="submit" className="w-full" disabled={updateUser.isPending}>
-                {updateUser.isPending ? 'SAVING...' : 'SAVE CHANGES'}
+                {updateUser.isPending ? t.profile.saving : t.profile.saveChanges}
               </Button>
             </form>
           </CardContent>

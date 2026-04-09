@@ -10,8 +10,10 @@ import { OrderItemsTable } from '@/components/orders/OrderItemsTable';
 import { useOrder, useCancelOrder, useCreateCheckoutSession } from '@/hooks/useOrders';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useT } from '@/lib/settings-context';
 
 export function OrderDetailPage() {
+  const t = useT();
   const { id } = useParams<{ id: string }>();
   const { data: order, isLoading } = useOrder(parseInt(id!));
   const cancelOrder = useCancelOrder();
@@ -76,7 +78,7 @@ export function OrderDetailPage() {
         className="mb-6 inline-flex items-center gap-2 text-sm text-secondary hover:text-on-surface"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Orders
+        {t.orders.backToOrders}
       </Link>
 
       <div className="mb-8 flex items-start justify-between">
@@ -170,7 +172,7 @@ export function OrderDetailPage() {
                   disabled={retryCheckout.isPending}
                 >
                   <CreditCard className="h-4 w-4" />
-                  {retryCheckout.isPending ? 'Redirecting...' : 'Pay Now'}
+                  {retryCheckout.isPending ? t.orders.redirecting : t.orders.payNow}
                 </Button>
                 <Button
                   variant="destructive"
@@ -178,7 +180,7 @@ export function OrderDetailPage() {
                   onClick={handleCancelOrder}
                   disabled={cancelOrder.isPending}
                 >
-                  Cancel Order
+                  {t.orders.cancelOrder}
                 </Button>
               </CardContent>
             </Card>

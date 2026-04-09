@@ -12,6 +12,7 @@ import { useCart } from '@/hooks/useCart';
 import { useCreateOrder } from '@/hooks/useOrders';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useT } from '@/lib/settings-context';
 
 const checkoutSchema = z.object({
   shipping_address: z.string().min(10, 'Address must be at least 10 characters'),
@@ -21,6 +22,7 @@ const checkoutSchema = z.object({
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 export function CheckoutPage() {
+  const t = useT();
   const navigate = useNavigate();
   const { data: cart } = useCart();
   const createOrder = useCreateOrder();
@@ -61,18 +63,18 @@ export function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-4xl font-bold text-on-surface">Checkout</h1>
+      <h1 className="mb-8 text-4xl md:text-7xl font-black font-headline uppercase tracking-tighter">{t.checkout.title}</h1>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Shipping Information</CardTitle>
+              <CardTitle className="font-headline uppercase tracking-tighter">{t.checkout.shippingInfo}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <Label htmlFor="shipping_address">Shipping Address *</Label>
+                  <Label htmlFor="shipping_address" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.checkout.shippingAddress} *</Label>
                   <Textarea
                     id="shipping_address"
                     {...register('shipping_address')}
@@ -86,7 +88,7 @@ export function CheckoutPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="notes">Order Notes (Optional)</Label>
+                  <Label htmlFor="notes" className="text-[10px] font-bold font-headline uppercase tracking-widest">{t.checkout.orderNotes}</Label>
                   <Textarea
                     id="notes"
                     {...register('notes')}
@@ -102,7 +104,7 @@ export function CheckoutPage() {
                   className="w-full"
                   disabled={createOrder.isPending}
                 >
-                  {createOrder.isPending ? 'Processing...' : 'Proceed to Payment'}
+                  {createOrder.isPending ? t.checkout.processing : t.checkout.proceedToPayment}
                 </Button>
               </form>
             </CardContent>
@@ -112,7 +114,7 @@ export function CheckoutPage() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle className="font-headline uppercase tracking-tighter">{t.cart.damage}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
