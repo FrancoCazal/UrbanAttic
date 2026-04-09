@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, NumberFilter, CharFilter
+from apps.core.pagination import StandardPagination
 from apps.products.models import Category, Product, ProductVariant
 from apps.products.api.serializers import (
     CategorySerializer,
@@ -65,6 +66,7 @@ class ProductFilter(FilterSet):
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('category').filter(is_active=True)
+    pagination_class = StandardPagination
     filterset_class = ProductFilter
     search_fields = ('name', 'description')
     ordering_fields = ('created_at', 'name')

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, ArrowLeft, ArrowRight, SlidersHorizontal, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,23 @@ export function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Debounced search — triggers 400ms after user stops typing
+  useEffect(() => {
+    debounceRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      if (searchInput.trim()) {
+        params.set('search', searchInput.trim());
+      } else {
+        params.delete('search');
+      }
+      params.delete('page');
+      setSearchParams(params, { replace: true });
+    }, 400);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [searchInput]);
 
   const filters = {
     search: searchParams.get('search') || undefined,
@@ -50,20 +67,6 @@ export function ProductsPage() {
     setSearchParams(params);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams(searchParams);
-
-    if (searchInput) {
-      params.set('search', searchInput);
-    } else {
-      params.delete('search');
-    }
-
-    params.delete('page');
-    setSearchParams(params);
-  };
-
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', newPage.toString());
@@ -71,7 +74,8 @@ export function ProductsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const totalPages = data ? Math.ceil(data.count / PAGE_SIZE) : 1;
+  const hasNextPage = !!data?.next;
+  const hasPrevPage = !!data?.previous;
 
   return (
     <div className="max-w-[1600px] mx-auto px-6 py-12 md:py-20">
@@ -88,7 +92,7 @@ export function ProductsPage() {
 
       {/* Mobile: Search + Filter Toggle */}
       <div className="md:hidden mb-8 space-y-4">
-        <form onSubmit={handleSearch}>
+        <div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
             <Input
@@ -99,7 +103,7 @@ export function ProductsPage() {
               className="pl-10"
             />
           </div>
-        </form>
+        </div>
         <button
           onClick={() => setFiltersOpen(!filtersOpen)}
           className="flex items-center gap-2 border-2 border-on-surface px-4 py-2 font-headline font-bold text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all w-full justify-center"
@@ -118,7 +122,7 @@ export function ProductsPage() {
         {/* Sidebar — Desktop */}
         <aside className="hidden md:block w-64 flex-shrink-0">
           <div className="sticky top-32">
-            <form onSubmit={handleSearch} className="mb-12">
+            <div className="mb-12">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
                 <Input
@@ -129,7 +133,7 @@ export function ProductsPage() {
                   className="pl-10"
                 />
               </div>
-            </form>
+            </div>
 
             <ProductFilters
               filters={filters}
@@ -149,33 +153,23 @@ export function ProductsPage() {
           <ProductGrid products={data?.results || []} isLoading={isLoading} />
 
           {/* Pagination */}
-          {data && totalPages > 1 && (
-            <div className="mt-16 md:mt-24 border-t-2 border-on-surface pt-8 flex flex-col sm:flex-row justify-between items-center gap-6">
-              <div className="flex gap-2">
-                {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => (
-                  <span
-                    key={i}
-                    className={`w-8 sm:w-12 h-1 ${i + 1 === filters.page ? 'bg-primary' : 'bg-surface-container-highest'}`}
-                  ></span>
-                ))}
-              </div>
-              <div className="flex items-center gap-6 sm:gap-12 font-headline font-bold text-xs tracking-widest">
-                <button
-                  onClick={() => handlePageChange(filters.page - 1)}
-                  disabled={filters.page === 1}
-                  className="flex items-center gap-2 hover:text-primary transition-colors disabled:opacity-30"
-                >
-                  <ArrowLeft className="h-4 w-4" /> PREV
-                </button>
-                <span className="text-on-surface">PAGE {String(filters.page).padStart(2, '0')} / {String(totalPages).padStart(2, '0')}</span>
-                <button
-                  onClick={() => handlePageChange(filters.page + 1)}
-                  disabled={filters.page === totalPages}
-                  className="flex items-center gap-2 hover:text-primary transition-colors disabled:opacity-30"
-                >
-                  NEXT <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
+          {data && (hasNextPage || hasPrevPage) && (
+            <div className="mt-16 md:mt-24 border-t-2 border-on-surface pt-8 flex justify-center items-center gap-6 sm:gap-12 font-headline font-bold text-xs tracking-widest">
+              <button
+                onClick={() => handlePageChange(filters.page - 1)}
+                disabled={!hasPrevPage}
+                className="flex items-center gap-2 hover:text-primary transition-colors disabled:opacity-30"
+              >
+                <ArrowLeft className="h-4 w-4" /> PREV
+              </button>
+              <span className="text-on-surface">PAGE {String(filters.page).padStart(2, '0')}</span>
+              <button
+                onClick={() => handlePageChange(filters.page + 1)}
+                disabled={!hasNextPage}
+                className="flex items-center gap-2 hover:text-primary transition-colors disabled:opacity-30"
+              >
+                NEXT <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           )}
         </section>

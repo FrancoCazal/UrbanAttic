@@ -29,7 +29,7 @@ export function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative h-[90vh] bg-on-surface overflow-hidden">
+      <section className="relative h-[70vh] md:h-[90vh] bg-on-surface overflow-hidden">
         <div className="absolute inset-0 opacity-40">
           <img
             alt="Urban streetwear lifestyle"
@@ -37,8 +37,8 @@ export function HomePage() {
             src="https://images.unsplash.com/photo-1564982752979-3f7bc974d29a?w=1920&q=80"
           />
         </div>
-        <div className="relative z-10 h-full flex flex-col justify-end p-8 md:p-16">
-        {/* Logo + CTA — centered right */}
+        <div className="relative z-10 h-full flex flex-col justify-end p-6 md:p-16">
+          {/* Logo + CTA — Desktop right side */}
           <div className="hidden md:flex absolute right-16 top-[55%] -translate-y-1/2 flex-col items-center gap-16">
             <img
               src="/favicon.jpg"
@@ -51,16 +51,22 @@ export function HomePage() {
               </button>
             </Link>
           </div>
-          <h1 className="font-headline text-[15vw] md:text-[12vw] leading-[0.8] font-black tracking-tighter text-white uppercase mb-8">
+          {/* Mobile: Logo centered above headline */}
+          <img
+            src="/favicon.jpg"
+            alt="Urban Attic Logo"
+            className="md:hidden w-32 h-auto object-contain opacity-90 mb-6"
+          />
+          <h1 className="font-headline text-[18vw] md:text-[12vw] leading-[0.8] font-black tracking-tighter text-white uppercase mb-6 md:mb-8">
             STREET<br />LEVEL<br />ONLY
           </h1>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <p className="max-w-md font-body text-surface-container-high text-lg uppercase tracking-tight">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8">
+            <p className="max-w-md font-body text-surface-container-high text-sm md:text-lg uppercase tracking-tight">
               COMFORTABLE, MODERN, AND AUTHENTIC URBAN FASHION FROM ASUNCION.
             </p>
             {/* Mobile-only CTA */}
             <Link to="/products" className="md:hidden">
-              <button className="px-10 py-5 bg-primary-container text-white font-headline font-bold uppercase tracking-widest text-xl border-2 border-on-surface hover:bg-white hover:text-on-surface transition-all active:scale-95">
+              <button className="px-8 py-4 bg-primary-container text-white font-headline font-bold uppercase tracking-widest text-base border-2 border-on-surface hover:bg-white hover:text-on-surface transition-all active:scale-95">
                 SHOP NOW
               </button>
             </Link>
@@ -160,7 +166,7 @@ export function HomePage() {
           <span className="font-headline font-bold tracking-widest text-sm mb-6 opacity-80 uppercase">OUR STORY</span>
           <h3 className="font-headline text-4xl md:text-5xl font-black mb-8 leading-tight tracking-tighter uppercase">BORN IN THE STREETS OF ASUNCION.</h3>
           <p className="font-body text-lg max-w-lg mb-10 opacity-90">
-            Fundada en 2018, Urban Attic nace como una tienda de ropa juvenil inspirada en las tendencias urbanas, la cultura del skate y la musica alternativa. Prendas comodas, modernas y accesibles para una nueva generacion.
+            Founded in 2018, Urban Attic was born as a youth clothing store inspired by urban trends, skate culture, and alternative music. Comfortable, modern, and accessible clothing for a new generation.
           </p>
           <Link to="/products" className="w-fit px-8 py-4 border-2 border-white font-headline font-bold uppercase tracking-widest hover:bg-white hover:text-primary transition-all">
             EXPLORE CATALOG
