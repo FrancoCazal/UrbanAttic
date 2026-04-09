@@ -3,9 +3,46 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-background text-on-surface font-body;
+  :root {
+    --color-bg: #fcf9f6;
+    --color-surface: #fcf9f6;
+    --color-surface-container: #f0edea;
+    --color-surface-container-low: #f6f3f0;
+    --color-surface-container-high: #eae8e5;
+    --color-surface-container-highest: #e5e2df;
+    --color-on-surface: #1c1c1a;
+    --color-on-background: #1c1c1a;
+    --color-secondary: #5f5e5e;
+    --color-navbar: #1c1c1a;
+    --color-navbar-text: #fcf9f6;
+    --color-footer: #1c1c1a;
+    --color-footer-text: #fcf9f6;
+    --color-hero-overlay: rgba(0, 0, 0, 0.6);
   }
+
+  .dark {
+    --color-bg: #121212;
+    --color-surface: #1a1a1a;
+    --color-surface-container: #222222;
+    --color-surface-container-low: #1e1e1e;
+    --color-surface-container-high: #2a2a2a;
+    --color-surface-container-highest: #333333;
+    --color-on-surface: #e5e2df;
+    --color-on-background: #e5e2df;
+    --color-secondary: #9a9a9a;
+    --color-navbar: #0a0a0a;
+    --color-navbar-text: #e5e2df;
+    --color-footer: #0a0a0a;
+    --color-footer-text: #e5e2df;
+    --color-hero-overlay: rgba(0, 0, 0, 0.7);
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-on-surface);
+    font-family: 'Manrope', sans-serif;
+  }
+
   * {
     border-radius: 0 !important;
   }

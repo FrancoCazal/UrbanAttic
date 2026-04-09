@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
@@ -7,15 +8,15 @@ export default {
         'primary': '#9b000d',
         'primary-container': '#c02020',
         'on-primary': '#ffffff',
-        'background': '#fcf9f6',
-        'surface': '#fcf9f6',
-        'surface-container': '#f0edea',
-        'surface-container-low': '#f6f3f0',
-        'surface-container-high': '#eae8e5',
-        'surface-container-highest': '#e5e2df',
-        'on-surface': '#1c1c1a',
-        'on-background': '#1c1c1a',
-        'secondary': '#5f5e5e',
+        'background': 'var(--color-bg)',
+        'surface': 'var(--color-surface)',
+        'surface-container': 'var(--color-surface-container)',
+        'surface-container-low': 'var(--color-surface-container-low)',
+        'surface-container-high': 'var(--color-surface-container-high)',
+        'surface-container-highest': 'var(--color-surface-container-highest)',
+        'on-surface': 'var(--color-on-surface)',
+        'on-background': 'var(--color-on-background)',
+        'secondary': 'var(--color-secondary)',
         'outline': '#8f6f6c',
         'outline-variant': '#e4beb9',
         'error': '#ba1a1a',
