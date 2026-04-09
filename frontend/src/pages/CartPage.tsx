@@ -47,8 +47,8 @@ export function CartPage() {
   return (
     <div className="max-w-[1600px] mx-auto px-6 py-12 md:px-12 lg:px-24">
       {/* Header */}
-      <header className="mb-16">
-        <h1 className="text-7xl md:text-9xl font-black font-headline tracking-tighter uppercase leading-[0.8] text-on-surface">
+      <header className="mb-8 md:mb-16">
+        <h1 className="text-5xl sm:text-7xl md:text-9xl font-black font-headline tracking-tighter uppercase leading-[0.8] text-on-surface">
           YOUR <br /> <span className="text-primary">HAUL</span>
         </h1>
         <p className="mt-4 font-body uppercase text-xs tracking-widest text-secondary opacity-70">
@@ -66,13 +66,13 @@ export function CartPage() {
           {/* Hookup Code */}
           <section className="pt-8 border-t-2 border-on-surface/10">
             <label className="font-headline font-bold uppercase text-sm tracking-widest block mb-4">GOT A HOOKUP CODE?</label>
-            <div className="flex max-w-md">
+            <div className="flex flex-col sm:flex-row max-w-md">
               <input
                 className="w-full bg-surface-container-high border-2 border-on-surface px-4 py-3 font-headline focus:ring-2 focus:ring-primary-container outline-none placeholder:text-on-surface/30"
                 placeholder="ENTER CODE"
                 type="text"
               />
-              <button className="bg-on-surface text-surface px-8 py-3 font-headline font-bold uppercase tracking-tighter hover:bg-primary transition-colors active:scale-95">
+              <button className="bg-on-surface text-surface px-8 py-3 font-headline font-bold uppercase tracking-tighter hover:bg-primary transition-colors active:scale-95 border-2 border-on-surface sm:border-l-0">
                 APPLY
               </button>
             </div>

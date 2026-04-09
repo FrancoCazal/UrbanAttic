@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Search, ArrowLeft, ArrowRight, SlidersHorizontal, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ProductGrid } from '@/components/products/ProductGrid';
 import { ProductFilters } from '@/components/products/ProductFilters';
@@ -9,6 +9,7 @@ import { useProducts } from '@/hooks/useProducts';
 export function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const filters = {
     search: searchParams.get('search') || undefined,
@@ -82,23 +83,48 @@ export function ProductsPage() {
         </div>
       </header>
 
+      {/* Mobile: Search + Filter Toggle */}
+      <div className="md:hidden mb-8 space-y-4">
+        <form onSubmit={handleSearch}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
+            <Input
+              type="text"
+              placeholder="SCAN..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </form>
+        <button
+          onClick={() => setFiltersOpen(!filtersOpen)}
+          className="flex items-center gap-2 border-2 border-on-surface px-4 py-2 font-headline font-bold text-xs uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-all w-full justify-center"
+        >
+          {filtersOpen ? <X className="h-4 w-4" /> : <SlidersHorizontal className="h-4 w-4" />}
+          {filtersOpen ? 'CLOSE FILTERS' : 'FILTERS'}
+        </button>
+        {filtersOpen && (
+          <div className="border-2 border-on-surface p-6">
+            <ProductFilters filters={filters} onFilterChange={handleFilterChange} />
+          </div>
+        )}
+      </div>
+
       <div className="flex flex-col md:flex-row gap-12">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 flex-shrink-0">
+        {/* Sidebar — Desktop */}
+        <aside className="hidden md:block w-64 flex-shrink-0">
           <div className="sticky top-32">
-            {/* Search */}
             <form onSubmit={handleSearch} className="mb-12">
-              <div className="flex">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
-                  <Input
-                    type="text"
-                    placeholder="SCAN..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
+                <Input
+                  type="text"
+                  placeholder="SCAN..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="pl-10"
+                />
               </div>
             </form>
 
@@ -121,16 +147,16 @@ export function ProductsPage() {
 
           {/* Pagination */}
           {data && totalPages > 1 && (
-            <div className="mt-24 border-t-2 border-on-surface pt-8 flex justify-between items-center">
+            <div className="mt-16 md:mt-24 border-t-2 border-on-surface pt-8 flex flex-col sm:flex-row justify-between items-center gap-6">
               <div className="flex gap-2">
                 {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => (
                   <span
                     key={i}
-                    className={`w-12 h-1 ${i + 1 === filters.page ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                    className={`w-8 sm:w-12 h-1 ${i + 1 === filters.page ? 'bg-primary' : 'bg-surface-container-highest'}`}
                   ></span>
                 ))}
               </div>
-              <div className="flex items-center gap-12 font-headline font-bold text-xs tracking-widest">
+              <div className="flex items-center gap-6 sm:gap-12 font-headline font-bold text-xs tracking-widest">
                 <button
                   onClick={() => handlePageChange(filters.page - 1)}
                   disabled={filters.page === 1}

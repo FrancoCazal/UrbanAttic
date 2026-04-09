@@ -107,7 +107,7 @@ export function ProductDetailPage() {
   const displayStock = selectedVariant ? selectedVariant.stock : product.stock;
 
   return (
-    <div className="max-w-[1600px] mx-auto px-6 py-12">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-8 md:py-12">
       <Link to="/products" className="mb-8 inline-flex items-center gap-2 text-sm font-headline font-bold uppercase tracking-wider text-secondary hover:text-on-surface transition-colors">
         <ArrowLeft className="h-4 w-4" />
         BACK TO CATALOG
@@ -154,13 +154,13 @@ export function ProductDetailPage() {
         {/* Product info */}
         <div className="space-y-8">
           <div>
-            <h1 className="mb-3 font-headline text-4xl md:text-5xl font-black uppercase tracking-tighter">{product.name}</h1>
+            <h1 className="mb-3 font-headline text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter">{product.name}</h1>
             <Link to={`/products?category=${product.category.slug}`}>
               <Badge variant="outline">{product.category.name}</Badge>
             </Link>
           </div>
 
-          <div className="font-headline text-4xl font-black text-primary">
+          <div className="font-headline text-3xl md:text-4xl font-black text-primary">
             {formatCurrency(displayPrice)}
           </div>
 
