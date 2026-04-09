@@ -6,6 +6,8 @@ import { ProductGrid } from '@/components/products/ProductGrid';
 import { ProductFilters } from '@/components/products/ProductFilters';
 import { useProducts } from '@/hooks/useProducts';
 
+const PAGE_SIZE = 8;
+
 export function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
@@ -18,6 +20,7 @@ export function ProductsPage() {
     max_price: searchParams.get('max_price') ? parseFloat(searchParams.get('max_price')!) : undefined,
     ordering: searchParams.get('ordering') || 'name',
     page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1,
+    page_size: PAGE_SIZE,
   };
 
   const { data, isLoading } = useProducts(filters);
@@ -68,9 +71,6 @@ export function ProductsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const PAGE_SIZE = 8;
-  const allProducts = data?.results || [];
-  const paginatedProducts = allProducts.slice(0, PAGE_SIZE);
   const totalPages = data ? Math.ceil(data.count / PAGE_SIZE) : 1;
 
   return (
@@ -146,7 +146,7 @@ export function ProductsPage() {
             </div>
           )}
 
-          <ProductGrid products={paginatedProducts} isLoading={isLoading} />
+          <ProductGrid products={data?.results || []} isLoading={isLoading} />
 
           {/* Pagination */}
           {data && totalPages > 1 && (

@@ -1,13 +1,22 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import { ProductGrid } from '@/components/products/ProductGrid';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ProductCard } from '@/components/products/ProductCard';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 
 export function HomePage() {
   const { data, isLoading } = useProducts({ ordering: '-created_at', page_size: 8 });
   const [email, setEmail] = useState('');
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: 'start', slidesToScroll: 1 },
+    [Autoplay({ delay: 3000, stopOnInteraction: false, stopOnMouseEnter: true })]
+  );
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +112,45 @@ export function HomePage() {
             </Link>
           </div>
 
-          <ProductGrid products={(data?.results || []).slice(0, 4)} isLoading={isLoading} />
+          {isLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="aspect-[3/4] w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="relative">
+              {/* Carousel */}
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex gap-6">
+                  {(data?.results || []).map((product) => (
+                    <div key={product.id} className="flex-none w-[calc(50%-12px)] md:w-[calc(25%-18px)]">
+                      <ProductCard product={product} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Navigation */}
+              <div className="flex justify-end gap-2 mt-8">
+                <button
+                  onClick={scrollPrev}
+                  className="border-2 border-on-surface p-3 hover:bg-on-surface hover:text-surface transition-all"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={scrollNext}
+                  className="border-2 border-on-surface p-3 hover:bg-on-surface hover:text-surface transition-all"
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
