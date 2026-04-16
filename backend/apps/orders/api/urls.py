@@ -4,7 +4,7 @@ from apps.orders.api.views import (
     OrderDetailView,
     OrderCancelView,
     CreateCheckoutSessionView,
-    stripe_webhook_view,
+    StripeWebhookView,
 )
 
 urlpatterns = [
@@ -12,5 +12,5 @@ urlpatterns = [
     path('<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
     path('<int:pk>/cancel/', OrderCancelView.as_view(), name='order-cancel'),
     path('<int:pk>/checkout-session/', CreateCheckoutSessionView.as_view(), name='order-checkout-session'),
-    path('webhook/stripe/', stripe_webhook_view, name='stripe-webhook'),
+    path('webhook/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
 ]

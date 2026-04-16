@@ -1,14 +1,11 @@
-import json
 import stripe
 from django.conf import settings
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from rest_framework import generics, status
+from rest_framework import generics, serializers as drf_serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import F
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
 from apps.orders.models import Order
 from apps.orders.permissions import IsOwner
 from apps.orders.services import CheckoutService, StripeCheckoutService
@@ -21,6 +18,23 @@ from apps.orders.api.serializers import (
 from apps.products.models import ProductVariant
 
 
+_checkout_response = inline_serializer('CheckoutResponse', fields={
+    'id': drf_serializers.IntegerField(),
+    'status': drf_serializers.CharField(),
+    'total_amount': drf_serializers.DecimalField(max_digits=10, decimal_places=2),
+    'checkout_url': drf_serializers.URLField(),
+})
+
+
+@extend_schema_view(
+    get=extend_schema(tags=['Orders'], summary='List orders', description="Returns the authenticated user's orders sorted by most recent."),
+    post=extend_schema(
+        tags=['Orders'],
+        summary='Create order from cart',
+        description='Converts the current cart into an order, creates a Stripe Checkout session, and returns the checkout URL. Cart is cleared on success.',
+        responses={201: _checkout_response},
+    ),
+)
 class OrderListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
 
@@ -51,6 +65,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(tags=['Orders'], summary='Order detail', description='Returns full order details including line items, payment status, and timestamps.')
 class OrderDetailView(generics.RetrieveAPIView):
     serializer_class = OrderDetailSerializer
     permission_classes = (IsAuthenticated, IsOwner)
@@ -61,9 +76,16 @@ class OrderDetailView(generics.RetrieveAPIView):
         ).prefetch_related('items__variant__product')
 
 
+@extend_schema(tags=['Orders'])
 class OrderCancelView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(
+        summary='Cancel order',
+        description='Cancel a pending order and return stock to inventory. Only orders with status "pending" can be cancelled.',
+        request=None,
+        responses={200: OrderDetailSerializer},
+    )
     def post(self, request, pk):
         try:
             order = Order.objects.get(pk=pk, user=request.user)
@@ -90,10 +112,18 @@ class OrderCancelView(APIView):
         return Response(OrderDetailSerializer(order).data)
 
 
+@extend_schema(tags=['Orders'])
 class CreateCheckoutSessionView(APIView):
-    """Retry payment for a pending order."""
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(
+        summary='Retry payment',
+        description='Create a new Stripe Checkout session for a pending order. Use this when the previous checkout session expired.',
+        request=None,
+        responses={200: inline_serializer('CheckoutURLResponse', fields={
+            'checkout_url': drf_serializers.URLField(),
+        })},
+    )
     def post(self, request, pk):
         try:
             order = Order.objects.get(
@@ -109,36 +139,51 @@ class CreateCheckoutSessionView(APIView):
         return Response({'checkout_url': checkout_url})
 
 
-@csrf_exempt
-@require_POST
-def stripe_webhook_view(request):
-    """Handle Stripe webhook events. Plain Django view (no DRF auth/parsing)."""
-    payload = request.body
-    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
+@extend_schema(tags=['Orders'])
+class StripeWebhookView(APIView):
+    permission_classes = ()
+    authentication_classes = ()
 
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET,
-        )
-    except (ValueError, stripe.error.SignatureVerificationError):
-        return JsonResponse({'error': 'Invalid signature'}, status=400)
+    @extend_schema(
+        summary='Stripe webhook',
+        description=(
+            'Handles Stripe webhook events. Verifies the event signature using '
+            'the webhook secret. On `checkout.session.completed`, updates the '
+            'order status to processing and triggers a confirmation email via Celery. '
+            'Idempotent: duplicate events for already-processed orders are ignored.'
+        ),
+        request=None,
+        responses={200: inline_serializer('WebhookOK', fields={
+            'status': drf_serializers.CharField(default='ok'),
+        })},
+    )
+    def post(self, request):
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
 
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        order_id = session.get('metadata', {}).get('order_id')
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET,
+            )
+        except (ValueError, stripe.error.SignatureVerificationError):
+            return Response({'error': 'Invalid signature'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if order_id:
-            try:
-                order = Order.objects.get(
-                    pk=order_id, status=Order.Status.PENDING,
-                )
-                order.status = Order.Status.PROCESSING
-                order.stripe_payment_intent_id = session.get('payment_intent', '')
-                order.save(update_fields=[
-                    'status', 'stripe_payment_intent_id', 'updated_at',
-                ])
-                send_order_confirmation_email.delay(order.pk)
-            except Order.DoesNotExist:
-                pass  # Already processed (idempotent) or doesn't exist
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            order_id = session.get('metadata', {}).get('order_id')
 
-    return JsonResponse({'status': 'ok'})
+            if order_id:
+                try:
+                    order = Order.objects.get(
+                        pk=order_id, status=Order.Status.PENDING,
+                    )
+                    order.status = Order.Status.PROCESSING
+                    order.stripe_payment_intent_id = session.get('payment_intent', '')
+                    order.save(update_fields=[
+                        'status', 'stripe_payment_intent_id', 'updated_at',
+                    ])
+                    send_order_confirmation_email.delay(order.pk)
+                except Order.DoesNotExist:
+                    pass  # Already processed (idempotent) or doesn't exist
+
+        return Response({'status': 'ok'})

@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.middleware.csrf import get_token
-from rest_framework import generics, status
+from rest_framework import generics, serializers as drf_serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from drf_spectacular.utils import extend_schema, OpenApiExample, inline_serializer
 from apps.users.api.serializers import RegisterSerializer, UserSerializer
 
 
@@ -29,11 +30,33 @@ def _set_auth_cookies(response, access, refresh):
     )
 
 
+@extend_schema(
+    tags=['Auth'],
+    summary='Register a new user',
+    description='Create a new user account with email and password.',
+    examples=[
+        OpenApiExample(
+            'Registration',
+            value={'email': 'user@example.com', 'first_name': 'John', 'last_name': 'Doe', 'password': 'securepass123'},
+            request_only=True,
+        ),
+    ],
+    responses={201: UserSerializer},
+)
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = (AllowAny,)
 
 
+@extend_schema(
+    tags=['Auth'],
+    summary='Login',
+    description='Authenticate with email and password. Sets JWT tokens in HttpOnly cookies and returns a CSRF token.',
+    responses={200: inline_serializer('LoginResponse', fields={
+        'detail': drf_serializers.CharField(default='Login successful.'),
+        'csrftoken': drf_serializers.CharField(),
+    })},
+)
 class CookieLoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -51,6 +74,14 @@ class CookieLoginView(TokenObtainPairView):
         return response
 
 
+@extend_schema(
+    tags=['Auth'],
+    summary='Refresh access token',
+    description='Refresh the JWT access token. Reads the refresh token from HttpOnly cookie automatically.',
+    responses={200: inline_serializer('RefreshResponse', fields={
+        'detail': drf_serializers.CharField(default='Token refreshed.'),
+    })},
+)
 class CookieRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         # Read refresh token from cookie if not in body
@@ -75,6 +106,15 @@ class CookieRefreshView(TokenRefreshView):
         return response
 
 
+@extend_schema(
+    tags=['Auth'],
+    summary='Logout',
+    description='Blacklist the refresh token and clear auth cookies.',
+    request=None,
+    responses={200: inline_serializer('LogoutResponse', fields={
+        'detail': drf_serializers.CharField(default='Logged out.'),
+    })},
+)
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -93,6 +133,7 @@ class LogoutView(APIView):
         return response
 
 
+@extend_schema(tags=['Auth'], summary='Get or update user profile')
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)

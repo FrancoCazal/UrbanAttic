@@ -138,9 +138,41 @@ CSRF_TRUSTED_ORIGINS = config(
 # drf-spectacular
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Urban Attic API',
-    'DESCRIPTION': 'Urban Attic E-Commerce API',
+    'DESCRIPTION': (
+        'Production-ready E-Commerce REST API built with Django REST Framework.\n\n'
+        '## Features\n'
+        '- JWT authentication via HttpOnly cookies\n'
+        '- Product catalog with categories, variants, and image management\n'
+        '- Redis-backed shopping cart with 7-day TTL\n'
+        '- Order processing with Stripe Checkout integration\n'
+        '- Async order confirmation emails via Celery\n\n'
+        '## Authentication\n'
+        'This API uses JWT tokens stored in HttpOnly cookies. '
+        'Call `POST /api/v1/auth/login/` with email and password to authenticate. '
+        'Tokens are automatically sent via cookies on subsequent requests.\n\n'
+        '## Rate Limits\n'
+        '- Anonymous: 50 requests/hour\n'
+        '- Authenticated: 500 requests/hour'
+    ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'TAGS': [
+        {'name': 'Auth', 'description': 'User registration, login, logout, and profile management.'},
+        {'name': 'Products', 'description': 'Product catalog with categories, variants, images, filtering, and search.'},
+        {'name': 'Cart', 'description': 'Redis-backed shopping cart. Requires authentication.'},
+        {'name': 'Orders', 'description': 'Order creation from cart, Stripe checkout, payment webhooks, and order management.'},
+    ],
+    'CONTACT': {
+        'name': 'Urban Attic',
+        'url': 'https://github.com/FrancoCazal/UrbanAttic',
+    },
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': False,
+        'docExpansion': 'none',
+    },
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 # Celery
@@ -156,7 +188,7 @@ REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 CART_TTL = 60 * 60 * 24 * 7  # 7 days
 
 # Email
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@drf-cart-pro.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@urbanattic.com')
 
 # Stripe
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')

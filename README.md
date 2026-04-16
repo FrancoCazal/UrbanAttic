@@ -9,7 +9,7 @@ Full-stack ecommerce platform built with Django REST Framework and React, showca
 ![Tests](https://img.shields.io/badge/tests-59%20passed-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)
 
-### [Live Demo](https://drf-cart-pro.vercel.app)
+### [Live Demo](https://urbanattic.vercel.app)
 
 ---
 
@@ -151,7 +151,8 @@ Django REST Framework (Railway)
 │   └── webhook/stripe/        POST    Stripe webhook handler
 │
 ├── schema/                    GET     OpenAPI schema
-└── docs/                      GET     Swagger UI
+├── docs/                      GET     Swagger UI
+└── redoc/                     GET     ReDoc
 ```
 
 ### Filtering & Search (Products)
@@ -177,8 +178,8 @@ Django REST Framework (Railway)
 
 ```bash
 # Clone the repository
-git clone https://github.com/FrancoCazal/DRF-Ecommerce.git
-cd DRF-Ecommerce
+git clone https://github.com/FrancoCazal/UrbanAttic.git
+cd UrbanAttic
 
 # Configure environment variables
 cp backend/.env.example backend/.env.docker
@@ -199,6 +200,7 @@ docker compose exec backend python manage.py seed
 | Frontend | http://localhost:5173 |
 | Backend API | http://localhost:8000 |
 | Swagger Docs | http://localhost:8000/api/docs/ |
+| ReDoc | http://localhost:8000/api/redoc/ |
 
 ### Demo Accounts (created by seed)
 
@@ -259,7 +261,7 @@ Each product has multiple variants (size + color combinations) with individual S
 ## Project Structure
 
 ```
-DRF-Ecommerce/
+UrbanAttic/
 ├── backend/
 │   ├── apps/
 │   │   ├── core/           # Base model, seed command

@@ -1,6 +1,6 @@
 {
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://drf-ecommerce-production-34cf.up.railway.app/api/$1" }
+    { "source": "/api/(.*)", "destination": "https://urbanattic.up.railway.app/api/$1" }
   ]
 }

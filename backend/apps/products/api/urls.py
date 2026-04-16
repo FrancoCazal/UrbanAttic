@@ -1,8 +1,8 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from apps.products.api.views import CategoryListView, CategoryTreeView, ProductViewSet
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register('products', ProductViewSet, basename='product')
 
 urlpatterns = [

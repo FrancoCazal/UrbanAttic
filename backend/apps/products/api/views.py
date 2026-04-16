@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, NumberFilter, CharFilter
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from apps.core.pagination import StandardPagination
 from apps.products.models import Category, Product, ProductVariant
 from apps.products.api.serializers import (
@@ -14,6 +15,7 @@ from apps.products.api.serializers import (
 )
 
 
+@extend_schema(tags=['Products'], summary='List categories')
 class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.filter(is_active=True)
     serializer_class = CategorySerializer
@@ -21,8 +23,8 @@ class CategoryListView(generics.ListAPIView):
     search_fields = ('name',)
 
 
+@extend_schema(tags=['Products'], summary='Category tree', description='Returns categories as a nested tree starting from root nodes.')
 class CategoryTreeView(generics.ListAPIView):
-    """Returns categories as a nested tree starting from root nodes."""
     serializer_class = CategoryTreeSerializer
     permission_classes = (AllowAny,)
 
@@ -64,6 +66,25 @@ class ProductFilter(FilterSet):
         return queryset.filter(id__in=variant_product_ids)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Products'],
+        summary='List products',
+        description='Paginated product list. Supports filtering by category slug, price range, text search, and ordering.',
+        parameters=[
+            OpenApiParameter(name='category', description='Filter by category slug (includes descendants)', type=str),
+            OpenApiParameter(name='min_price', description='Minimum variant price', type=float),
+            OpenApiParameter(name='max_price', description='Maximum variant price', type=float),
+            OpenApiParameter(name='search', description='Search in name and description', type=str),
+            OpenApiParameter(name='ordering', description='Order by: created_at, name (prefix with - for desc)', type=str),
+        ],
+    ),
+    retrieve=extend_schema(tags=['Products'], summary='Product detail', description='Returns full product info with variants and images.'),
+    create=extend_schema(tags=['Products'], summary='Create product (admin)'),
+    partial_update=extend_schema(tags=['Products'], summary='Update product (admin)'),
+    update=extend_schema(tags=['Products'], summary='Replace product (admin)'),
+    destroy=extend_schema(tags=['Products'], summary='Delete product (admin)', description='Soft-deletes the product by setting is_active=False.'),
+)
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('category').filter(is_active=True)
     pagination_class = StandardPagination
