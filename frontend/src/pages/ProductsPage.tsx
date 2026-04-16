@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useSearchParams } from 'react-router-dom';
 import { Search, ArrowLeft, ArrowRight, SlidersHorizontal, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -81,6 +82,14 @@ export function ProductsPage() {
 
   return (
     <div className="max-w-[1600px] mx-auto px-6 py-12 md:py-20">
+      <Helmet>
+        <title>Catalog | Urban Attic</title>
+        <meta name="description" content="Browse our streetwear catalog. T-shirts, pants, jackets, accessories and more. Filter by category, price, and style." />
+        <meta property="og:title" content="Catalog | Urban Attic" />
+        <meta property="og:description" content="Browse our streetwear catalog. T-shirts, pants, jackets, accessories and more." />
+        <meta property="og:url" content="https://urbanattic.vercel.app/products" />
+      </Helmet>
+
       {/* Header */}
       <header className="mb-16 border-b-2 border-on-surface pb-8">
         <h1 className="text-5xl sm:text-7xl md:text-9xl font-black uppercase tracking-tighter leading-none mb-4 font-headline">{t.catalog.title}</h1>

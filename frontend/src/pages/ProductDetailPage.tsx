@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -110,6 +111,15 @@ export function ProductDetailPage() {
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <Helmet>
+        <title>{product.name} | Urban Attic</title>
+        <meta name="description" content={product.description} />
+        <meta property="og:title" content={`${product.name} | Urban Attic`} />
+        <meta property="og:description" content={product.description} />
+        <meta property="og:url" content={`https://urbanattic.vercel.app/products/${product.slug}`} />
+        {mainImage && <meta property="og:image" content={mainImage} />}
+      </Helmet>
+
       <Link to="/products" className="mb-8 inline-flex items-center gap-2 text-sm font-headline font-bold uppercase tracking-wider text-secondary hover:text-on-surface transition-colors">
         <ArrowLeft className="h-4 w-4" />
         {t.product.backToCatalog}

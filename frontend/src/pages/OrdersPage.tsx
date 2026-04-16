@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Package, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,6 +57,9 @@ export function OrdersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Helmet>
+        <title>My Orders | Urban Attic</title>
+      </Helmet>
       <h1 className="mb-8 text-4xl font-bold text-on-surface">{t.orders.title}</h1>
 
       <Card>

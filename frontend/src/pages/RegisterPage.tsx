@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,6 +61,10 @@ export function RegisterPage() {
 
   return (
     <div className="container mx-auto flex min-h-[calc(100vh-200px)] items-center justify-center px-4 py-8">
+      <Helmet>
+        <title>Register | Urban Attic</title>
+        <meta name="description" content="Create your Urban Attic account and start shopping streetwear." />
+      </Helmet>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-headline uppercase tracking-tighter">{t.auth.registerTitle}</CardTitle>

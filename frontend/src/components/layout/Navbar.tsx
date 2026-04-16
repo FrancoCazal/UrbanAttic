@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, User, LogOut, Package, Search, X, Menu, Sun, Moon, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,22 @@ export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchToggleRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchRef.current && !searchRef.current.contains(e.target as Node) &&
+        searchToggleRef.current && !searchToggleRef.current.contains(e.target as Node)
+      ) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +92,7 @@ export function Navbar() {
 
           {/* Search */}
           <button
+            ref={searchToggleRef}
             onClick={() => { setSearchOpen(!searchOpen); setMenuOpen(false); }}
             className="text-[var(--color-navbar-text)] hover:text-[#c02020] transition-colors p-2"
           >
@@ -155,7 +172,7 @@ export function Navbar() {
 
       {/* Search Bar */}
       {searchOpen && (
-        <div className="bg-[var(--color-navbar)] border-t border-[var(--color-navbar-text)]/10 px-6 py-4">
+        <div ref={searchRef} className="bg-[var(--color-navbar)] border-t border-[var(--color-navbar-text)]/10 px-6 py-4">
           <form onSubmit={handleSearch} className="flex max-w-2xl mx-auto">
             <input
               autoFocus

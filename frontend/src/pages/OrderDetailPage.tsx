@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,6 +74,9 @@ export function OrderDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Helmet>
+        <title>Order #{order.id} | Urban Attic</title>
+      </Helmet>
       <Link
         to="/orders"
         className="mb-6 inline-flex items-center gap-2 text-sm text-secondary hover:text-on-surface"

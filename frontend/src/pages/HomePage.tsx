@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { ProductCard } from '@/components/products/ProductCard';
@@ -36,6 +37,15 @@ export function HomePage() {
 
   return (
     <div>
+      <Helmet>
+        <title>Urban Attic — Street Level Only | Streetwear from Asuncion</title>
+        <meta name="description" content="Comfortable, modern, and authentic urban fashion from Asuncion. Shop streetwear for men, women, and unisex." />
+        <meta property="og:title" content="Urban Attic — Street Level Only" />
+        <meta property="og:description" content="Streetwear born in Asuncion. Designed for the concrete landscape." />
+        <meta property="og:url" content="https://urbanattic.vercel.app" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+
       {/* Hero Section */}
       <section className="relative h-[70vh] md:h-[90vh] bg-[#1c1c1a] overflow-hidden">
         <div className="absolute inset-0 opacity-40">

@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -48,6 +49,9 @@ export function CartPage() {
 
   return (
     <div className="max-w-[1600px] mx-auto px-6 py-12 md:px-12 lg:px-24">
+      <Helmet>
+        <title>Cart | Urban Attic</title>
+      </Helmet>
       {/* Header */}
       <header className="mb-8 md:mb-16">
         <h1 className="text-5xl sm:text-7xl md:text-9xl font-black font-headline tracking-tighter uppercase leading-[0.8] text-on-surface">
