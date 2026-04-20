@@ -170,7 +170,10 @@ class StripeWebhookView(APIView):
 
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
-            order_id = session.get('metadata', {}).get('order_id')
+            try:
+                order_id = session['metadata']['order_id']
+            except (KeyError, TypeError):
+                order_id = None
 
             if order_id:
                 try:
@@ -178,7 +181,10 @@ class StripeWebhookView(APIView):
                         pk=order_id, status=Order.Status.PENDING,
                     )
                     order.status = Order.Status.PROCESSING
-                    order.stripe_payment_intent_id = session.get('payment_intent', '')
+                    try:
+                        order.stripe_payment_intent_id = session['payment_intent'] or ''
+                    except KeyError:
+                        order.stripe_payment_intent_id = ''
                     order.save(update_fields=[
                         'status', 'stripe_payment_intent_id', 'updated_at',
                     ])
