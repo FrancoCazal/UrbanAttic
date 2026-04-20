@@ -112,7 +112,7 @@ export function ProductDetailPage() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-8 md:py-12">
       <Helmet>
-        <title>{product.name} | Urban Attic</title>
+        <title>{`${product.name} | Urban Attic`}</title>
         <meta name="description" content={product.description} />
         <meta property="og:title" content={`${product.name} | Urban Attic`} />
         <meta property="og:description" content={product.description} />

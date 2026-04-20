@@ -75,7 +75,7 @@ export function OrderDetailPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Helmet>
-        <title>Order #{order.id} | Urban Attic</title>
+        <title>{`Order #${order.id} | Urban Attic`}</title>
       </Helmet>
       <Link
         to="/orders"
