@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Package, Search, X, Menu, Sun, Moon } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Package, Search, X, Menu, Sun, Moon, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -101,6 +101,10 @@ export function Navbar() {
 
           {user && (
             <>
+              <Link to="/wishlist" className="text-[var(--color-navbar-text)] hover:text-[#c02020] transition-colors p-2" onClick={closeMenu} title="Wishlist">
+                <Heart className="h-5 w-5" />
+              </Link>
+
               <Link to="/cart" className="flex items-center gap-2 text-[var(--color-navbar-text)] hover:text-[#c02020] transition-colors p-2" onClick={closeMenu}>
                 <ShoppingCart className="h-5 w-5" />
                 {cart && cart.count > 0 && (
@@ -134,6 +138,12 @@ export function Navbar() {
                       <Link to="/orders" className="flex items-center gap-2">
                         <Package className="h-4 w-4" />
                         {t.nav.myOrders}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/wishlist" className="flex items-center gap-2">
+                        <Heart className="h-4 w-4" />
+                        Wishlist
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -214,6 +224,9 @@ export function Navbar() {
                   </Link>
                   <Link to="/orders" onClick={closeMenu} className="font-headline uppercase tracking-tight font-bold text-lg text-[var(--color-navbar-text)] hover:text-[#c02020] transition-colors flex items-center gap-3">
                     <Package className="h-5 w-5" /> {t.nav.myOrders}
+                  </Link>
+                  <Link to="/wishlist" onClick={closeMenu} className="font-headline uppercase tracking-tight font-bold text-lg text-[var(--color-navbar-text)] hover:text-[#c02020] transition-colors flex items-center gap-3">
+                    <Heart className="h-5 w-5" /> Wishlist
                   </Link>
                   <button onClick={handleLogout} className="font-headline uppercase tracking-tight font-bold text-lg text-[var(--color-navbar-text)] hover:text-[#c02020] transition-colors flex items-center gap-3 text-left">
                     <LogOut className="h-5 w-5" /> {t.nav.logout}
