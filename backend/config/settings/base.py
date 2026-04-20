@@ -34,6 +34,7 @@ LOCAL_APPS = [
     'apps.products',
     'apps.cart',
     'apps.orders',
+    'apps.wishlist',
     'django_cleanup.apps.CleanupConfig',  # must be last
 ]
 

@@ -81,3 +81,49 @@ export function useUpdateUser() {
     },
   });
 }
+
+export function useVerifyEmail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (token: string) => {
+      const { data } = await api.post('/auth/verify-email/', { token });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const { data } = await api.post('/auth/resend-verification/', { email });
+      return data;
+    },
+  });
+}
+
+export function usePasswordResetRequest() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const { data } = await api.post('/auth/password-reset-request/', { email });
+      return data;
+    },
+  });
+}
+
+interface PasswordResetConfirmData {
+  token: string;
+  new_password: string;
+}
+
+export function usePasswordResetConfirm() {
+  return useMutation({
+    mutationFn: async (payload: PasswordResetConfirmData) => {
+      const { data } = await api.post('/auth/password-reset-confirm/', payload);
+      return data;
+    },
+  });
+}

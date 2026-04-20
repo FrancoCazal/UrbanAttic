@@ -49,6 +49,18 @@ const CheckoutSuccessPage = lazy(() =>
 const CheckoutCancelPage = lazy(() =>
   import('@/pages/CheckoutCancelPage').then((m) => ({ default: m.CheckoutCancelPage }))
 );
+const VerifyEmailPage = lazy(() =>
+  import('@/pages/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
+);
+const ForgotPasswordPage = lazy(() =>
+  import('@/pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
+);
+const ResetPasswordPage = lazy(() =>
+  import('@/pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
+);
+const WishlistPage = lazy(() =>
+  import('@/pages/WishlistPage').then((m) => ({ default: m.WishlistPage }))
+);
 
 export const router = createBrowserRouter([
   {
@@ -150,6 +162,30 @@ export const router = createBrowserRouter([
         <ProtectedRoute>
           <Suspense fallback={<LoadingFallback />}>
             <ProfilePage />
+          </Suspense>
+        </ProtectedRoute>
+      </Layout>
+    ),
+  },
+  {
+    path: '/verify-email',
+    element: <Layout><Suspense fallback={<LoadingFallback />}><VerifyEmailPage /></Suspense></Layout>,
+  },
+  {
+    path: '/forgot-password',
+    element: <Layout><Suspense fallback={<LoadingFallback />}><ForgotPasswordPage /></Suspense></Layout>,
+  },
+  {
+    path: '/reset-password',
+    element: <Layout><Suspense fallback={<LoadingFallback />}><ResetPasswordPage /></Suspense></Layout>,
+  },
+  {
+    path: '/wishlist',
+    element: (
+      <Layout>
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingFallback />}>
+            <WishlistPage />
           </Suspense>
         </ProtectedRoute>
       </Layout>

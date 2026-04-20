@@ -1,6 +1,7 @@
 import stripe
 from django.conf import settings
 from rest_framework import generics, serializers as drf_serializers, status
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -37,6 +38,9 @@ _checkout_response = inline_serializer('CheckoutResponse', fields={
 )
 class OrderListCreateView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
+    filter_backends = (OrderingFilter,)
+    ordering_fields = ('created_at', 'total_amount', 'status')
+    ordering = ('-created_at',)
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)

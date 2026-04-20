@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Product } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { useT } from '@/lib/settings-context';
+import { WishlistButton } from './WishlistButton';
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +17,7 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link to={`/products/${product.slug}`}>
       <article className="group cursor-pointer">
         <div className="relative aspect-[3/4] bg-surface-container overflow-hidden transition-all group-hover:outline group-hover:outline-2 group-hover:outline-on-surface group-hover:outline-offset-4">
+          <WishlistButton slug={product.slug} />
           {imageUrl ? (
             <img
               src={imageUrl}

@@ -3,6 +3,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  email_verified: boolean;
   date_joined: string;
 }
 
@@ -56,6 +57,12 @@ export interface ProductDetail extends Product {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface WishlistItem {
+  id: number;
+  product: Product;
+  created_at: string;
 }
 
 export interface PaginatedResponse<T> {

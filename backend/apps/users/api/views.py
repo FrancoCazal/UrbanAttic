@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.middleware.csrf import get_token
 from rest_framework import generics, serializers as drf_serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,7 +9,37 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.utils import extend_schema, OpenApiExample, inline_serializer
-from apps.users.api.serializers import RegisterSerializer, UserSerializer
+from apps.users.api.serializers import (
+    RegisterSerializer,
+    UserSerializer,
+    VerifyEmailSerializer,
+    ResendVerificationSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetConfirmSerializer,
+)
+from apps.users.tasks import (
+    send_verification_email,
+    send_password_reset_email,
+    EMAIL_VERIFICATION_SALT,
+    PASSWORD_RESET_SALT,
+)
+
+User = get_user_model()
+
+VERIFICATION_TOKEN_MAX_AGE_SECONDS = 24 * 60 * 60  # 24 hours
+PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS = 60 * 60  # 1 hour
+
+
+def _decode_signed_user_id(token, salt, max_age):
+    signer = TimestampSigner(salt=salt)
+    try:
+        user_id_str = signer.unsign(token, max_age=max_age)
+    except (BadSignature, SignatureExpired):
+        return None
+    try:
+        return int(user_id_str)
+    except ValueError:
+        return None
 
 
 def _set_auth_cookies(response, access, refresh):
@@ -47,6 +79,10 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = (AllowAny,)
 
+    def perform_create(self, serializer):
+        user = serializer.save()
+        send_verification_email.delay(user.pk)
+
 
 @extend_schema(
     tags=['Auth'],
@@ -60,17 +96,31 @@ class RegisterView(generics.CreateAPIView):
 class CookieLoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
-            _set_auth_cookies(
-                response,
-                response.data['access'],
-                response.data['refresh'],
+        if response.status_code != 200:
+            return response
+
+        email = request.data.get('email')
+        user = User.objects.filter(email=email).first()
+        if user is not None and not user.email_verified:
+            return Response(
+                {
+                    'detail': 'Please verify your email before logging in.',
+                    'code': 'email_not_verified',
+                    'email': user.email,
+                },
+                status=status.HTTP_403_FORBIDDEN,
             )
-            csrf_token = get_token(request)
-            response.data = {
-                'detail': 'Login successful.',
-                'csrftoken': csrf_token,
-            }
+
+        _set_auth_cookies(
+            response,
+            response.data['access'],
+            response.data['refresh'],
+        )
+        csrf_token = get_token(request)
+        response.data = {
+            'detail': 'Login successful.',
+            'csrftoken': csrf_token,
+        }
         return response
 
 
@@ -140,3 +190,153 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+@extend_schema(
+    tags=['Auth'],
+    summary='Verify email',
+    description='Validate the email verification token sent on registration and mark the account as verified.',
+    request=VerifyEmailSerializer,
+    responses={
+        200: inline_serializer('VerifyEmailOK', fields={
+            'detail': drf_serializers.CharField(default='Email verified.'),
+        }),
+        400: inline_serializer('VerifyEmailFail', fields={
+            'detail': drf_serializers.CharField(),
+        }),
+    },
+)
+class VerifyEmailView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        serializer = VerifyEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user_id = _decode_signed_user_id(
+            serializer.validated_data['token'],
+            salt=EMAIL_VERIFICATION_SALT,
+            max_age=VERIFICATION_TOKEN_MAX_AGE_SECONDS,
+        )
+        if user_id is None:
+            return Response(
+                {'detail': 'Invalid or expired token.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {'detail': 'Invalid token.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user.email_verified:
+            user.email_verified = True
+            user.save(update_fields=['email_verified'])
+
+        return Response({'detail': 'Email verified.'}, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    tags=['Auth'],
+    summary='Resend verification email',
+    description='Re-send the email verification link. Always returns 200 regardless of whether the email exists (prevents enumeration). No-op if email is already verified.',
+    request=ResendVerificationSerializer,
+    responses={200: inline_serializer('ResendVerificationOK', fields={
+        'detail': drf_serializers.CharField(default='If that email is registered and unverified, a verification link has been sent.'),
+    })},
+)
+class ResendVerificationView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        serializer = ResendVerificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        user = User.objects.filter(email=email).first()
+        if user is not None and not user.email_verified:
+            send_verification_email.delay(user.pk)
+
+        return Response(
+            {'detail': 'If that email is registered and unverified, a verification link has been sent.'},
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    tags=['Auth'],
+    summary='Request password reset',
+    description='Request a password reset email. Always returns 200 regardless of whether the email is registered (prevents user enumeration).',
+    request=PasswordResetRequestSerializer,
+    responses={200: inline_serializer('PasswordResetRequestOK', fields={
+        'detail': drf_serializers.CharField(default='If that email is registered, a reset link has been sent.'),
+    })},
+)
+class PasswordResetRequestView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        user = User.objects.filter(email=email).first()
+        if user is not None:
+            send_password_reset_email.delay(user.pk)
+
+        return Response(
+            {'detail': 'If that email is registered, a reset link has been sent.'},
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    tags=['Auth'],
+    summary='Confirm password reset',
+    description='Submit a new password using the token sent by email.',
+    request=PasswordResetConfirmSerializer,
+    responses={
+        200: inline_serializer('PasswordResetConfirmOK', fields={
+            'detail': drf_serializers.CharField(default='Password updated.'),
+        }),
+        400: inline_serializer('PasswordResetConfirmFail', fields={
+            'detail': drf_serializers.CharField(),
+        }),
+    },
+)
+class PasswordResetConfirmView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user_id = _decode_signed_user_id(
+            serializer.validated_data['token'],
+            salt=PASSWORD_RESET_SALT,
+            max_age=PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS,
+        )
+        if user_id is None:
+            return Response(
+                {'detail': 'Invalid or expired token.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {'detail': 'Invalid token.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(serializer.validated_data['new_password'])
+        user.save(update_fields=['password'])
+        return Response({'detail': 'Password updated.'}, status=status.HTTP_200_OK)

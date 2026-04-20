@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Mail, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const { data: user } = useUser();
   const register = useRegister();
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -49,8 +51,7 @@ export function RegisterPage() {
     const { confirm_password, ...registerData } = data;
     register.mutate(registerData, {
       onSuccess: () => {
-        toast.success('Registration successful! Please login.');
-        navigate('/login');
+        setRegisteredEmail(registerData.email);
       },
       onError: (error: any) => {
         const message = error.response?.data?.detail || 'Registration failed';
@@ -66,6 +67,34 @@ export function RegisterPage() {
         <meta name="description" content="Create your Urban Attic account and start shopping streetwear." />
       </Helmet>
       <Card className="w-full max-w-md">
+        {registeredEmail ? (
+          <CardContent className="pt-8 pb-8 text-center space-y-6">
+            <div className="flex justify-center">
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            </div>
+            <div>
+              <h1 className="mb-2 text-2xl font-bold font-headline uppercase tracking-tighter text-on-surface">
+                Check Your Email
+              </h1>
+              <p className="text-secondary text-sm">
+                We sent a verification link to{' '}
+                <span className="font-mono text-on-surface">{registeredEmail}</span>.
+                Click the link to activate your account before logging in.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 items-center text-xs text-secondary">
+              <div className="flex items-center gap-1">
+                <Mail className="h-3 w-3" />
+                <span>The link expires in 24 hours.</span>
+              </div>
+              <span>If you don't see it, check your spam folder.</span>
+            </div>
+            <Link to="/login">
+              <Button variant="outline" className="w-full">Back to Login</Button>
+            </Link>
+          </CardContent>
+        ) : (
+          <>
         <CardHeader>
           <CardTitle className="text-2xl font-headline uppercase tracking-tighter">{t.auth.registerTitle}</CardTitle>
           <CardDescription>{t.auth.registerDescription}</CardDescription>
@@ -110,6 +139,8 @@ export function RegisterPage() {
             <Link to="/login" className="font-medium text-on-surface hover:underline">{t.auth.loginTitle}</Link>
           </p>
         </CardFooter>
+          </>
+        )}
       </Card>
     </div>
   );

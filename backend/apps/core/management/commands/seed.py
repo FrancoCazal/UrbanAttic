@@ -65,6 +65,7 @@ class Command(BaseCommand):
                 first_name="Admin",
                 last_name="Urban Attic",
                 password="admin1234",
+                email_verified=True,
             )
             self.stdout.write("  Created admin user.")
         else:
@@ -76,6 +77,7 @@ class Command(BaseCommand):
                 first_name="Demo",
                 last_name="User",
                 password="demo1234",
+                email_verified=True,
             )
             self.stdout.write("  Created demo user.")
         else:

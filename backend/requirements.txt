@@ -18,6 +18,7 @@ whitenoise
 django-storages[s3]
 boto3
 django-anymail[sendgrid]
+django-csp
 
 # Testing
 pytest

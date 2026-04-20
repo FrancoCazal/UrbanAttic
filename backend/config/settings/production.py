@@ -48,6 +48,34 @@ SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'same-origin'
+
+# CSP — Content Security Policy (via django-csp)
+MIDDLEWARE.insert(
+    MIDDLEWARE.index('django.middleware.security.SecurityMiddleware') + 1,
+    'csp.middleware.CSPMiddleware',
+)
+
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        'script-src': ("'self'", "'unsafe-inline'", 'js.stripe.com'),
+        'style-src': ("'self'", "'unsafe-inline'"),
+        'img-src': ("'self'", 'data:', 'https:'),
+        'connect-src': ("'self'", 'api.stripe.com'),
+        'frame-src': ('js.stripe.com', 'hooks.stripe.com', 'checkout.stripe.com'),
+        'font-src': ("'self'", 'data:'),
+        'object-src': ("'none'",),
+        'base-uri': ("'self'",),
+        'form-action': ("'self'", 'checkout.stripe.com'),
+        'frame-ancestors': ("'none'",),
+    },
+}
 
 # Email — SendGrid via django-anymail (HTTP API)
 EMAIL_BACKEND = config(

@@ -18,5 +18,22 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'date_joined')
-        read_only_fields = ('id', 'email', 'date_joined')
+        fields = ('id', 'email', 'first_name', 'last_name', 'email_verified', 'date_joined')
+        read_only_fields = ('id', 'email', 'email_verified', 'date_joined')
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+
+class ResendVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(min_length=8, write_only=True)
