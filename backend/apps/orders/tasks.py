@@ -1,6 +1,9 @@
+import logging
 from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
@@ -23,4 +26,10 @@ def send_order_confirmation_email(self, order_id):
             fail_silently=False,
         )
     except Exception as exc:
+        response_body = getattr(getattr(exc, 'response', None), 'text', None)
+        logger.error(
+            'send_order_confirmation_email failed for order_id=%s: %s %r | response=%s',
+            order_id, type(exc).__name__, exc, response_body,
+            exc_info=True,
+        )
         raise self.retry(exc=exc)
