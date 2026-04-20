@@ -49,12 +49,15 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-# Email — Resend via django-anymail (HTTP API, not SMTP)
+# Email — SendGrid via django-anymail (HTTP API)
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
-    default='anymail.backends.resend.EmailBackend',
+    default='anymail.backends.sendgrid.EmailBackend',
 )
 ANYMAIL = {
-    'RESEND_API_KEY': config('RESEND_API_KEY', default=''),
+    'SENDGRID_API_KEY': config('SENDGRID_API_KEY', default=''),
 }
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='onboarding@resend.dev')
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default='Urban Attic <francocazal02@gmail.com>',
+)
