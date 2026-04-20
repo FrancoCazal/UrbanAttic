@@ -81,17 +81,19 @@ export function CartItem({ item }: CartItemProps) {
             <button
               onClick={() => handleQuantityChange(item.quantity - 1)}
               disabled={item.quantity <= 1 || updateCartItem.isPending}
-              className="px-3 py-1 hover:bg-on-surface hover:text-surface transition-colors font-bold disabled:opacity-30"
+              aria-label="Decrease quantity"
+              className="min-w-[44px] min-h-[44px] px-3 py-2 hover:bg-on-surface hover:text-surface transition-colors font-bold disabled:opacity-30"
             >
               -
             </button>
-            <span className="px-6 py-1 font-headline font-bold border-x-2 border-on-surface">
+            <span className="min-w-[52px] px-4 py-2 font-headline font-bold border-x-2 border-on-surface text-center">
               {String(item.quantity).padStart(2, '0')}
             </span>
             <button
               onClick={() => handleQuantityChange(item.quantity + 1)}
               disabled={updateCartItem.isPending}
-              className="px-3 py-1 hover:bg-on-surface hover:text-surface transition-colors font-bold"
+              aria-label="Increase quantity"
+              className="min-w-[44px] min-h-[44px] px-3 py-2 hover:bg-on-surface hover:text-surface transition-colors font-bold"
             >
               +
             </button>

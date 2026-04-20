@@ -202,9 +202,9 @@ export function Navbar() {
         </div>
       )}
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu — slide-in with fade */}
       {menuOpen && (
-        <div className="md:hidden bg-[var(--color-navbar)] border-t border-[var(--color-navbar-text)]/10 px-6 py-8">
+        <div className="md:hidden bg-[var(--color-navbar)] border-t border-[var(--color-navbar-text)]/10 px-6 py-8 animate-[slideDown_0.25s_ease-out]">
           <div className="flex flex-col gap-6">
             <Link to="/products" onClick={closeMenu} className="font-headline uppercase tracking-tight font-bold text-lg text-[var(--color-navbar-text)] hover:text-[#c02020] transition-colors">
               {t.nav.catalog}

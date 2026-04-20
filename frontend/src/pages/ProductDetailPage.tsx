@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, TouchEvent } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -50,6 +50,30 @@ export function ProductDetailPage() {
     const primaryImg = product?.images?.find((img) => img.is_primary);
     return primaryImg?.image || product?.images?.[0]?.image || null;
   }, [selectedVariant, product?.images]);
+
+  const touchStartX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: TouchEvent) => {
+    if (touchStartX.current === null || !product?.images || product.images.length < 2) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+
+    if (Math.abs(deltaX) < 50) return; // ignore small swipes
+
+    const currentIndex = product.images.findIndex((img) => img.image === mainImage);
+    const direction = deltaX < 0 ? 1 : -1; // swipe left = next
+    const nextIndex = (currentIndex + direction + product.images.length) % product.images.length;
+    const nextImage = product.images[nextIndex];
+
+    const matchingVariant = product.variants?.find((v) => v.image_url === nextImage.image);
+    if (matchingVariant?.attributes.color) {
+      setSelectedColor(matchingVariant.attributes.color);
+    }
+  };
 
   const handleAddToCart = () => {
     if (!user) {
@@ -128,9 +152,13 @@ export function ProductDetailPage() {
       <div className="grid gap-12 lg:grid-cols-2">
         {/* Image section */}
         <div>
-          <div className="aspect-[3/4] overflow-hidden bg-surface-container">
+          <div
+            className="aspect-[3/4] overflow-hidden bg-surface-container touch-pan-y select-none"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             {mainImage ? (
-              <img src={mainImage} alt={product.name} className="h-full w-full object-cover" />
+              <img src={mainImage} alt={product.name} className="h-full w-full object-cover pointer-events-none" />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-secondary font-headline uppercase">
                 NO IMAGE
@@ -138,28 +166,43 @@ export function ProductDetailPage() {
             )}
           </div>
           {product.images && product.images.length > 1 && (
-            <div className="mt-4 flex gap-2">
-              {product.images.map((img) => (
-                <button
-                  key={img.id}
-                  onClick={() => {
-                    const matchingVariant = product.variants?.find(
-                      (v) => v.image_url === img.image
-                    );
-                    if (matchingVariant?.attributes.color) {
-                      setSelectedColor(matchingVariant.attributes.color);
-                    }
-                  }}
-                  className={`h-20 w-20 overflow-hidden border-2 ${
-                    mainImage === img.image
-                      ? 'border-on-surface'
-                      : 'border-transparent hover:border-secondary'
-                  }`}
-                >
-                  <img src={img.image} alt={img.alt_text} className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
+            <>
+              {/* Dots indicator — visible on mobile */}
+              <div className="mt-3 flex sm:hidden justify-center gap-1.5">
+                {product.images.map((img) => (
+                  <span
+                    key={img.id}
+                    className={`h-1.5 w-1.5 transition-all ${
+                      mainImage === img.image ? 'bg-on-surface w-6' : 'bg-on-surface/30'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Thumbnails — visible on desktop */}
+              <div className="mt-4 hidden sm:flex gap-2">
+                {product.images.map((img) => (
+                  <button
+                    key={img.id}
+                    onClick={() => {
+                      const matchingVariant = product.variants?.find(
+                        (v) => v.image_url === img.image
+                      );
+                      if (matchingVariant?.attributes.color) {
+                        setSelectedColor(matchingVariant.attributes.color);
+                      }
+                    }}
+                    className={`h-20 w-20 overflow-hidden border-2 ${
+                      mainImage === img.image
+                        ? 'border-on-surface'
+                        : 'border-transparent hover:border-secondary'
+                    }`}
+                  >
+                    <img src={img.image} alt={img.alt_text} className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -247,17 +290,19 @@ export function ProductDetailPage() {
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className="px-4 py-3 hover:bg-on-surface hover:text-surface transition-colors font-bold disabled:opacity-30"
+                    aria-label="Decrease quantity"
+                    className="min-w-[48px] min-h-[48px] px-5 py-3 hover:bg-on-surface hover:text-surface transition-colors font-bold text-lg disabled:opacity-30"
                   >
                     -
                   </button>
-                  <span className="px-6 py-3 font-headline font-bold border-x-2 border-on-surface min-w-[60px] text-center">
+                  <span className="px-6 py-3 font-headline font-bold border-x-2 border-on-surface min-w-[72px] text-center">
                     {String(quantity).padStart(2, '0')}
                   </span>
                   <button
                     onClick={() => setQuantity(Math.min(displayStock, quantity + 1))}
                     disabled={quantity >= displayStock}
-                    className="px-4 py-3 hover:bg-on-surface hover:text-surface transition-colors font-bold disabled:opacity-30"
+                    aria-label="Increase quantity"
+                    className="min-w-[48px] min-h-[48px] px-5 py-3 hover:bg-on-surface hover:text-surface transition-colors font-bold text-lg disabled:opacity-30"
                   >
                     +
                   </button>
