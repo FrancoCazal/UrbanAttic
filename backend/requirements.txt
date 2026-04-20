@@ -17,6 +17,7 @@ gunicorn
 whitenoise
 django-storages[s3]
 boto3
+django-anymail[resend]
 
 # Testing
 pytest
