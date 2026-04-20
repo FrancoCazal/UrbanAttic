@@ -6,8 +6,9 @@ Full-stack ecommerce platform built with Django REST Framework and React, showca
 ![Django](https://img.shields.io/badge/django-5.x-green)
 ![DRF](https://img.shields.io/badge/DRF-3.14+-blue)
 ![React](https://img.shields.io/badge/react-18-61DAFB)
-![Tests](https://img.shields.io/badge/tests-59%20passed-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)
+![Tests](https://img.shields.io/badge/tests-93%20passed-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-84%25-brightgreen)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-blue)
 
 ### [Live Demo](https://urbanattic.vercel.app)
 
@@ -15,16 +16,23 @@ Full-stack ecommerce platform built with Django REST Framework and React, showca
 
 ## Overview
 
-A production-ready ecommerce system featuring JWT authentication via HttpOnly cookies, a Redis-backed shopping cart, Stripe Checkout integration, async order processing with Celery, and a brutalist-inspired frontend design system ("Concrete Gallery").
+A production-ready ecommerce system featuring JWT authentication via HttpOnly cookies, a Redis-backed shopping cart, Stripe Checkout integration, async order processing with Celery, transactional email via SendGrid, and a brutalist-inspired frontend design system ("Concrete Gallery").
 
 ### Key Features
 
 - **JWT Auth with HttpOnly Cookies** — Secure token storage, refresh rotation, blacklisting
+- **Email Verification (hard blocking)** — Registration requires email confirmation via signed token; login returns 403 until verified
+- **Password Reset Flow** — Signed tokens with 1h expiry, non-enumerable endpoints
 - **Product Catalog** — Variants (size/color), multiple images, category tree, filtering, search, pagination
 - **Redis Shopping Cart** — Fast cart operations with 7-day TTL, variant-based items
+- **Wishlist** — Per-user favorites with toggle endpoint, heart button on ProductCard
 - **Stripe Checkout** — Hosted payment page, webhook verification, retry payment flow
-- **Async Processing** — Celery tasks for order confirmation emails
+- **Async Processing** — Celery tasks for order confirmation, email verification, password reset
+- **Transactional Email** — SendGrid via django-anymail (HTTP API)
 - **S3 Media Storage** — Product images served from AWS S3
+- **Health Check Endpoint** — `GET /api/v1/health/` with DB + Redis connectivity probes
+- **Security Headers** — CSP (Stripe-safe), HSTS, X-Frame-Options, Referrer-Policy
+- **CI/CD** — GitHub Actions running backend tests (with PostgreSQL service container) and frontend typecheck + build on every PR
 - **API Documentation** — Auto-generated OpenAPI/Swagger via drf-spectacular
 - **Brutalist Design System** — Custom "Concrete Gallery" design with Space Grotesk + Manrope typography, 0px border-radius, industrial aesthetic
 
@@ -40,17 +48,20 @@ React SPA (Vite + TypeScript)
 Django REST Framework (Railway)
     |
     |--- PostgreSQL (Railway)
-    |       Users, Products, Variants, Images, Orders
+    |       Users, Products, Variants, Images, Orders, WishlistItems
     |
     |--- Redis (Railway)
     |       Cart data (per-user hash, TTL 7d)
     |       Celery broker + result backend
     |
-    |--- Celery Workers
+    |--- Celery Workers (Railway — separate service)
     |       send_order_confirmation_email
+    |       send_verification_email
+    |       send_password_reset_email
     |
     |--- External Services
             Stripe API (Checkout Sessions + Webhooks)
+            SendGrid API (Transactional email via django-anymail)
             AWS S3 (Product images)
 ```
 
@@ -83,6 +94,8 @@ Django REST Framework (Railway)
 | SimpleJWT | JWT authentication |
 | drf-spectacular | OpenAPI documentation |
 | django-storages + boto3 | AWS S3 media storage |
+| django-anymail[sendgrid] | Transactional email via SendGrid HTTP API |
+| django-csp | Content Security Policy middleware |
 | Gunicorn | Production WSGI server |
 | Whitenoise | Static file serving |
 
@@ -106,11 +119,13 @@ Django REST Framework (Railway)
 
 | Technology | Purpose |
 |---|---|
-| Railway | Backend hosting (Django + PostgreSQL + Redis) |
+| Railway | Backend hosting (Django + PostgreSQL + Redis + Celery worker) |
 | Vercel | Frontend hosting + API proxy |
 | AWS S3 | Media file storage |
+| SendGrid | Transactional email delivery |
+| GitHub Actions | CI pipeline (tests + typecheck + build on every PR) |
 | Docker | Local development |
-| pytest + factory-boy | Testing (59 tests, 91% coverage) |
+| pytest + factory-boy | Testing (93 tests, 84% coverage) |
 
 ---
 
@@ -118,41 +133,51 @@ Django REST Framework (Railway)
 
 ```
 /api/v1/
-├── auth/
-│   ├── register/              POST    User registration
-│   ├── login/                 POST    JWT login (sets HttpOnly cookies)
-│   ├── refresh/               POST    Refresh access token
-│   ├── logout/                POST    Blacklist token + clear cookies
-│   └── me/                    GET/PATCH  User profile
+├── health/                         GET     DB + Redis health probe
 │
-├── categories/                GET     List active categories
-│   └── tree/                  GET     Nested category tree
+├── auth/
+│   ├── register/                   POST    User registration (dispatches verification email)
+│   ├── login/                      POST    JWT login (sets HttpOnly cookies; 403 if unverified)
+│   ├── refresh/                    POST    Refresh access token
+│   ├── logout/                     POST    Blacklist token + clear cookies
+│   ├── me/                         GET/PATCH  User profile
+│   ├── verify-email/               POST    Confirm email with signed token
+│   ├── resend-verification/        POST    Re-send verification email (by email)
+│   ├── password-reset-request/     POST    Request password reset (non-enumerable)
+│   └── password-reset-confirm/     POST    Set new password with signed token
+│
+├── categories/                     GET     List active categories
+│   └── tree/                       GET     Nested category tree
 │
 ├── products/
-│   ├── /                      GET     List (paginated, filterable, searchable)
-│   ├── /{slug}/               GET     Detail with variants & images
-│   ├── /                      POST    Create (admin only)
-│   ├── /{slug}/               PATCH   Update (admin only)
-│   └── /{slug}/               DELETE  Soft-delete (admin only)
+│   ├── /                           GET     List (paginated, filterable, searchable, ordered)
+│   ├── /{slug}/                    GET     Detail with variants & images
+│   ├── /                           POST    Create (admin only)
+│   ├── /{slug}/                    PATCH   Update (admin only)
+│   └── /{slug}/                    DELETE  Soft-delete (admin only)
 │
 ├── cart/
-│   ├── /                      GET     Get cart details
-│   ├── /add/                  POST    Add variant to cart
-│   ├── /update/{variant_id}/  PATCH   Update quantity
-│   ├── /remove/{variant_id}/  DELETE  Remove item
-│   └── /clear/                DELETE  Clear cart
+│   ├── /                           GET     Get cart details
+│   ├── /add/                       POST    Add variant to cart
+│   ├── /update/{variant_id}/       PATCH   Update quantity
+│   ├── /remove/{variant_id}/       DELETE  Remove item
+│   └── /clear/                     DELETE  Clear cart
 │
 ├── orders/
-│   ├── /                      GET     List user's orders
-│   ├── /                      POST    Create order from cart + Stripe session
-│   ├── /{id}/                 GET     Order detail
-│   ├── /{id}/cancel/          POST    Cancel pending order (restores stock)
-│   ├── /{id}/checkout-session/ POST   Retry payment for pending order
-│   └── webhook/stripe/        POST    Stripe webhook handler
+│   ├── /                           GET     List user's orders (ordered)
+│   ├── /                           POST    Create order from cart + Stripe session
+│   ├── /{id}/                      GET     Order detail
+│   ├── /{id}/cancel/               POST    Cancel pending order (restores stock)
+│   ├── /{id}/checkout-session/     POST    Retry payment for pending order
+│   └── webhook/stripe/             POST    Stripe webhook handler
 │
-├── schema/                    GET     OpenAPI schema
-├── docs/                      GET     Swagger UI
-└── redoc/                     GET     ReDoc
+├── wishlist/
+│   ├── /                           GET     List user's wishlist items
+│   └── /toggle/{slug}/             POST    Add product if absent, remove if present
+│
+├── schema/                         GET     OpenAPI schema
+├── docs/                           GET     Swagger UI
+└── redoc/                          GET     ReDoc
 ```
 
 ### Filtering & Search (Products)
@@ -233,14 +258,16 @@ pytest
 docker compose exec backend pytest
 ```
 
-**Results:** 59 tests, 91% coverage
+**Results:** 93 tests, 84% coverage (runs on every PR via GitHub Actions with `--cov-fail-under=80`)
 
-| Module | Tests | Coverage |
-|---|---|---|
-| Users (models + API) | 12 | 68-100% |
-| Products (models + API) | 12 | 93-100% |
-| Cart (services) | 10 | 99-100% |
-| Orders (models + services + API) | 12 | 75-100% |
+| Module | Coverage |
+|---|---|
+| Users (models + API + auth flows) | 88-100% |
+| Products (models + API) | 73-100% |
+| Cart (services + API) | 57-100% |
+| Orders (models + services + API) | 67-100% |
+| Wishlist (models + API) | 91-100% |
+| Core (health check) | 100% |
 
 ---
 
@@ -262,33 +289,41 @@ Each product has multiple variants (size + color combinations) with individual S
 
 ```
 UrbanAttic/
+├── .github/
+│   └── workflows/
+│       └── ci.yml          # Backend tests + frontend typecheck + build
 ├── backend/
 │   ├── apps/
-│   │   ├── core/           # Base model, seed command
-│   │   ├── users/          # Custom user, JWT auth, cookie middleware
+│   │   ├── core/           # Base model, seed command, health check
+│   │   ├── users/          # Custom user, JWT auth, email verification, password reset, tasks
 │   │   ├── products/       # Categories, products, variants, images
 │   │   ├── cart/           # Redis-backed cart service
-│   │   └── orders/         # Orders, checkout, Stripe, Celery tasks
+│   │   ├── orders/         # Orders, checkout, Stripe, Celery tasks
+│   │   └── wishlist/       # Per-user favorites (toggle + list)
 │   ├── config/
-│   │   ├── settings/       # base, local, production
+│   │   ├── settings/       # base, local, production (CSP, HSTS, security headers)
 │   │   ├── urls.py
 │   │   └── celery.py
 │   ├── Dockerfile
+│   ├── .coveragerc
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
 │   │   ├── api/            # Axios client with JWT refresh interceptor
 │   │   ├── components/
+│   │   │   ├── auth/       # ProtectedRoute, EmailVerificationBanner
 │   │   │   ├── layout/     # Navbar (dark), Footer (4-col), Layout
-│   │   │   ├── products/   # ProductCard, ProductGrid, ProductFilters
+│   │   │   ├── products/   # ProductCard, ProductGrid, ProductFilters, WishlistButton
 │   │   │   ├── cart/       # CartItem, CartSummary ("DAMAGE")
 │   │   │   ├── orders/     # OrderStatusBadge, OrderItemsTable
 │   │   │   └── ui/         # Radix-based components (brutalist styled)
-│   │   ├── hooks/          # React Query hooks (useProducts, useCart, useAuth, useOrders)
+│   │   ├── hooks/          # React Query hooks (useProducts, useCart, useAuth, useOrders, useWishlist)
 │   │   ├── lib/            # Types, utils (cn, formatCurrency, formatDate)
-│   │   └── pages/          # HomePage, ProductsPage, CartPage, etc.
-│   ├── vercel.json         # API proxy rewrites
+│   │   └── pages/          # HomePage, ProductsPage, CartPage, VerifyEmailPage, ForgotPasswordPage, ResetPasswordPage, WishlistPage, etc.
+│   ├── vercel.json         # API proxy rewrites + SPA fallback
 │   └── package.json
+├── docs/
+│   └── development/        # Planning docs, status tracking
 ├── docker-compose.yml
 └── README.md
 ```
@@ -312,6 +347,10 @@ Stripe's hosted checkout page handles all PCI compliance, 3D Secure, and payment
 ### Why Create Order Before Payment?
 
 Stock is decremented atomically at order creation (inside `transaction.atomic()` with `select_for_update()`). This prevents overselling even under concurrent requests. The order starts as PENDING and transitions to PROCESSING only after Stripe webhook confirms payment.
+
+### Why `TimestampSigner` for Verification and Reset Tokens?
+
+Instead of storing one-time tokens in the database, the email verification and password reset flows use Django's built-in `TimestampSigner` with a scoped salt per flow (`urbanattic.email-verification`, `urbanattic.password-reset`). The token is a signed payload of the user ID with an embedded timestamp. Verification reads the token, validates the signature against `SECRET_KEY`, and enforces a `max_age` (24h for verification, 1h for reset). No database table, no cleanup job, no token collision risk — and tokens become invalid automatically when `SECRET_KEY` rotates.
 
 ### Why "Concrete Gallery" Design?
 
