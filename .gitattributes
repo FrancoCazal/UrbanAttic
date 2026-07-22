@@ -1,0 +1,2 @@
+# Keep language stats focused on the Django backend; the React frontend is a supporting surface.
+frontend/** linguist-vendored
