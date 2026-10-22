@@ -10,7 +10,9 @@ Full-stack ecommerce platform built with Django REST Framework and React, showca
 ![Coverage](https://img.shields.io/badge/coverage-84%25-brightgreen)
 ![CI](https://img.shields.io/badge/CI-GitHub%20Actions-blue)
 
-### [Live Demo](https://urbanattic.vercel.app)
+> **Live demo offline while the backend moves to a new host.** The frontend at
+> urbanattic.vercel.app still loads, but without the API the store is empty. The
+> full stack runs locally with Docker: see [Quick Start](#quick-start).
 
 ---
 
