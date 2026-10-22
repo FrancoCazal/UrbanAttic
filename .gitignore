@@ -15,6 +15,7 @@ env/
 .env
 .env.docker
 .env.local
+.env.production
 *.local
 
 # Database
