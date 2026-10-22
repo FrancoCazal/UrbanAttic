@@ -233,8 +233,11 @@ docker compose exec backend python manage.py seed
 
 | Role | Email | Password |
 |---|---|---|
-| Admin | admin@urbanattic.com | admin1234 |
-| User | demo@urbanattic.com | demo1234 |
+| Admin | admin@urbanattic.com | `SEED_ADMIN_PASSWORD` |
+| User | demo@urbanattic.com | `SEED_DEMO_PASSWORD` |
+
+Set both variables before running the seed. If one is unset, the seed generates a random
+password and prints it once in its output.
 
 ### Testing Stripe Payments
 

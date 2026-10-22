@@ -87,5 +87,5 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL',
-    default='Urban Attic <francocazal02@gmail.com>',
+    default='Urban Attic <noreply@francocazal.com>',
 )

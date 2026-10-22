@@ -4,11 +4,17 @@ Management command to seed the database with Urban Attic demo data.
 Usage:
     python manage.py seed           # idempotent seed
     python manage.py seed --flush   # wipe seeded models first, then seed
+
+The two demo accounts take their passwords from SEED_ADMIN_PASSWORD and
+SEED_DEMO_PASSWORD. When a variable is unset, the seed generates a random
+password and prints it once, so no password lives in the repository.
 """
 
+import secrets
 from decimal import Decimal
 from pathlib import Path
 
+from decouple import config
 from django.core.files import File
 from django.core.management.base import BaseCommand
 
@@ -58,13 +64,21 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     # Users
     # ------------------------------------------------------------------
+    def _password(self, var, label):
+        password = config(var, default="")
+        if password:
+            return password
+        password = secrets.token_urlsafe(12)
+        self.stdout.write(f"  {label} password (generated, set {var} to choose it): {password}")
+        return password
+
     def _create_users(self):
         if not User.objects.filter(email="admin@urbanattic.com").exists():
             User.objects.create_superuser(
                 email="admin@urbanattic.com",
                 first_name="Admin",
                 last_name="Urban Attic",
-                password="admin1234",
+                password=self._password("SEED_ADMIN_PASSWORD", "Admin"),
                 email_verified=True,
             )
             self.stdout.write("  Created admin user.")
@@ -76,7 +90,7 @@ class Command(BaseCommand):
                 email="demo@urbanattic.com",
                 first_name="Demo",
                 last_name="User",
-                password="demo1234",
+                password=self._password("SEED_DEMO_PASSWORD", "Demo"),
                 email_verified=True,
             )
             self.stdout.write("  Created demo user.")
