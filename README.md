@@ -42,41 +42,64 @@ A production-ready ecommerce system featuring JWT authentication via HttpOnly co
 
 ## Architecture
 
+```mermaid
+flowchart TB
+    SPA["React SPA<br/>Vite + TypeScript"] -- "/api/*" --> VC["Vercel rewrite"]
+    VC --> MW
+
+    subgraph DRF["Django 5 · Django REST Framework"]
+        MW["Cookie middleware<br/>access cookie → Authorization header"]
+        AUTH["auth<br/>SimpleJWT, TimestampSigner"]
+        CART["cart<br/>CartService"]
+        ORD["orders<br/>CheckoutService"]
+        WH["Stripe webhook<br/>signature verified"]
+        MW --> AUTH & CART & ORD
+    end
+
+    PG[("PostgreSQL 16<br/>users, catalog, orders, stock")]
+    RD[("Redis 7<br/>cart hash, 7-day TTL<br/>Celery broker")]
+    ST["Stripe Checkout<br/>hosted page"]
+    S3["AWS S3<br/>product images"]
+    CEL["Celery worker<br/>3 retries, 60 s apart"]
+    SG["SendGrid<br/>django-anymail"]
+
+    AUTH & CART & ORD & WH --> PG
+    CART & ORD --> RD
+    AUTH & WH -- "queue email" --> RD
+    RD --> CEL --> SG
+    DRF --> S3
+    ORD -- "Checkout Session" --> ST
+    SPA -. "redirect" .-> ST
+    ST -- "checkout.session.completed" --> WH
 ```
-React SPA (Vite + TypeScript)
-    |
-    | Vercel (proxy /api → Railway)
-    v
-Django REST Framework (Railway)
-    |
-    |--- PostgreSQL (Railway)
-    |       Users, Products, Variants, Images, Orders, WishlistItems
-    |
-    |--- Redis (Railway)
-    |       Cart data (per-user hash, TTL 7d)
-    |       Celery broker + result backend
-    |
-    |--- Celery Workers (Railway — separate service)
-    |       send_order_confirmation_email
-    |       send_verification_email
-    |       send_password_reset_email
-    |
-    |--- External Services
-            Stripe API (Checkout Sessions + Webhooks)
-            SendGrid API (Transactional email via django-anymail)
-            AWS S3 (Product images)
-```
+
+Celery runs three tasks: `send_order_confirmation_email`, `send_verification_email` and
+`send_password_reset_email`.
 
 ### Checkout Flow
 
-```
-1. User adds variant to cart (Redis)
-2. User fills shipping address → POST /api/v1/orders/
-3. Backend: atomic transaction (validate stock → create order → decrement stock → clear cart)
-4. Backend: create Stripe Checkout Session → return checkout_url
-5. Frontend: redirect to Stripe hosted checkout
-6. User pays with card
-7. Stripe webhook → backend updates order to PROCESSING → sends confirmation email
+```mermaid
+sequenceDiagram
+    participant B as Browser (React SPA)
+    participant API as DRF API
+    participant R as Redis
+    participant PG as PostgreSQL
+    participant S as Stripe
+    participant C as Celery worker
+
+    B->>API: POST /api/v1/orders/
+    API->>R: read the cart
+    API->>PG: transaction.atomic: select_for_update the variants,<br/>check stock, create the order, decrement stock with F()
+    API->>R: clear the cart, after the commit
+    API->>S: create a Checkout Session from the order's lines
+    API-->>B: checkout_url
+    B->>S: redirect, the customer pays on Stripe's page
+    S->>API: webhook: checkout.session.completed
+    Note over API: verify the signature with the endpoint secret
+    API->>PG: pending → processing, only while still pending
+    API->>R: queue the confirmation email
+    R->>C: the worker takes the task
+    Note over C: send through SendGrid, 3 retries 60 s apart
 ```
 
 ---
@@ -121,7 +144,7 @@ Django REST Framework (Railway)
 
 | Technology | Purpose |
 |---|---|
-| Railway | Backend hosting (Django + PostgreSQL + Redis + Celery worker) |
+| GCP e2-micro VM | Backend host: [`docker-compose.prod.yml`](docker-compose.prod.yml) runs PostgreSQL, Redis, Gunicorn, a Celery worker and Caddy for TLS. The move from Railway is in [`deploy/DEPLOY.md`](deploy/DEPLOY.md) and not live yet |
 | Vercel | Frontend hosting + API proxy |
 | AWS S3 | Media file storage |
 | SendGrid | Transactional email delivery |
